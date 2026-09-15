@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import {translate} from '@/app/i18n';
+
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 
 import { cn } from '@/lib/utils';
@@ -124,7 +126,7 @@ function ToastClose({
   return (
     <ToastPrimitive.Close
       data-slot="toast-close"
-      aria-label="Close toast"
+      aria-label={translate('ui.closeToast')}
       render={render}
       className={cn(
         "relative shrink-0 text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:text-foreground",
