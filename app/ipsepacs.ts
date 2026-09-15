@@ -135,6 +135,24 @@ export const COLOR_MODALIDAD: Record<string, string> = {
 const API = (import.meta as unknown as { env: Record<string, string> })
   .env?.VITE_IPSEPACS_API ?? 'http://localhost:8081';
 
+/* Ruta base del visor: permite publicarlo en una subcarpeta del PACS
+   (p. ej. https://pacs.ipse.com.ec/atlas/) sin romper el desarrollo local. */
+export const RUTA_BASE = (import.meta as unknown as { env: Record<string, string> })
+  .env?.BASE_URL ?? '/';
+
+/** El catalogo del modelo trae rutas absolutas (/models/body-0.bin). Publicado
+ *  en una subcarpeta hay que devolverlas ahi o el navegador las pide en la raiz
+ *  del dominio y responde 404 ("no se pudo cargar un archivo de anatomia"). */
+export function conRutaBase<T extends { chunks?: { url?: string; gzip?: string }[] }>(atlas: T): T {
+  const base = RUTA_BASE.replace(/\/$/, '');
+  if (!base) return atlas;                       // desde la raiz: nada que ajustar
+  const ajustar = (u?: string) => (u && u.startsWith('/') ? base + u : u);
+  return {
+    ...atlas,
+    chunks: (atlas.chunks ?? []).map(c => ({ ...c, url: ajustar(c.url) as string, gzip: ajustar(c.gzip) })),
+  } as T;
+}
+
 let mapeoCache: Mapeo | null = null;
 let regionesCache: RegionStats[] | null = null;
 const statsPorRegion = new Map<string, RegionStats>();
@@ -142,7 +160,7 @@ const cacheEstructura = new Map<string, RespuestaEstructura>();
 
 export async function cargarMapeo(): Promise<Mapeo> {
   if (mapeoCache) return mapeoCache;
-  const r = await fetch('/ipsepacs-mapeo.json');
+  const r = await fetch(`${RUTA_BASE}ipsepacs-mapeo.json`);
   if (!r.ok) throw new Error('No se pudo cargar el mapeo de regiones.');
   mapeoCache = (await r.json()) as Mapeo;
   return mapeoCache;
