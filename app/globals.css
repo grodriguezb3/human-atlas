@@ -116,3 +116,32 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 @media(max-width:767px){body:has(.detail-sheet) .view-controls{visibility:hidden}}
 
 @media(max-height:600px) and (orientation:landscape){body:has(.detail-sheet) .bottom-dock{left:12px;right:324px;width:auto;transform:none;max-width:none;margin:0}}
+
+/* ---- Panel clinico: barras de modalidad, sexo, edad y anios ---------- */
+.ipse-bloque{display:flex;flex-direction:column;gap:8px}
+.ipse-bloque .ipse-sub{display:flex;align-items:center;gap:5px}
+.ipse-barras{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.ipse-barra{display:flex;flex-direction:column;gap:4px}
+.ipse-barra-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ipse-barra-top b{font-size:12px;font-weight:600;color:#22304a}
+.ipse-barra-top i{font-size:11px;font-style:normal;color:#6a7a92}
+.ipse-barra-pista{display:block;height:6px;border-radius:999px;background:#e6edf9;overflow:hidden}
+.ipse-barra-relleno{display:block;height:100%;border-radius:999px;transition:width .3s ease}
+.ipse-sexo{display:flex;flex-direction:column;gap:7px}
+.ipse-sexo-barra{display:flex;height:9px;border-radius:999px;overflow:hidden;background:#e6edf9}
+.ipse-sexo-tramo{display:block;height:100%}
+.ipse-sexo-leyenda{display:flex;flex-wrap:wrap;gap:10px}
+.ipse-sexo-leyenda span{display:flex;align-items:center;gap:5px;font-size:11px;color:#6a7a92}
+.ipse-sexo-leyenda i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.ipse-sexo-leyenda b{color:#22304a;font-weight:600}
+.ipse-edad-datos{display:flex;gap:18px;flex-wrap:wrap}
+.ipse-edad-datos span{display:flex;flex-direction:column;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#8a97ab}
+.ipse-edad-datos strong{font-size:14px;font-weight:600;color:#0046ad;text-transform:none;letter-spacing:0}
+.ipse-anios{list-style:none;margin:0;padding:0;display:flex;align-items:flex-end;gap:10px;height:64px}
+.ipse-anios li{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
+.ipse-anio-barra{width:100%;max-width:36px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#5b7fb7,#0046ad);display:block}
+.ipse-anios i{font-size:10.5px;font-style:normal;color:#6a7a92}
+.ipse-paciente-datos{display:flex;gap:6px;flex-wrap:wrap}
+.ipse-paciente-datos i{font-size:10.5px;font-style:normal;color:#42506a;background:#eef4ff;border:1px solid #dbe6f7;border-radius:999px;padding:1px 7px}
+.ipse-paciente-datos i.es-f{color:#8a3b62;background:#fdf1f6;border-color:#f2dbe6}
+.ipse-paciente-datos i.es-m{color:#1e3a72;background:#eef4ff;border-color:#dbe6f7}

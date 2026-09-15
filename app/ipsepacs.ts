@@ -3,8 +3,42 @@
  *
  * Carga el mapeo estructuras -> regiones anatomicas de la institucion y
  * consulta el endpoint Aj_Atlas3D.php (solo Superadmin) para obtener la
- * estadistica real y los estudios.
+ * estadistica real, la demografia (sexo y edad) y los estudios.
  */
+
+export interface ItemModalidad {
+  modalidad: string;
+  n: number;
+  pct: number;
+}
+
+export interface ItemGrupoEdad {
+  etiqueta: string;
+  n: number;
+  pct: number;
+}
+
+export interface ItemAnio {
+  anio: number;
+  n: number;
+  pct: number;
+}
+
+export interface DemografiaSexo {
+  Femenino: number;
+  Masculino: number;
+  Otro?: number;
+  'Sin dato'?: number;
+}
+
+export interface DemografiaEdad {
+  promedio: number | null;
+  mediana: number | null;
+  minima: number | null;
+  maxima: number | null;
+  conDato: number;
+  grupos: ItemGrupoEdad[];
+}
 
 export interface RegionStats {
   id: number;
@@ -14,13 +48,19 @@ export interface RegionStats {
   n: number;
   eco: number;
   rx: number;
+  modalidades: ItemModalidad[];
+  sexo: DemografiaSexo;
+  edadPromedio: number | null;
 }
 
 export interface EstudioClinico {
   modalidad: string | null;
+  modalidad_nombre?: string | null;
   descripcion: string | null;
   paciente: string | null;
   cedula: string | null;
+  sexo?: string | null;
+  edad?: number | null;
   fecha: string | null;
   study_uid: string | null;
   id_study: number | string | null;
@@ -33,6 +73,10 @@ export interface RespuestaEstructura {
   total: number;
   eco: number;
   rayosX: number;
+  modalidades: ItemModalidad[];
+  sexo: DemografiaSexo;
+  edad: DemografiaEdad;
+  anios: ItemAnio[];
   estudios: EstudioClinico[];
 }
 
@@ -40,8 +84,10 @@ export interface KpisInstitucion {
   estudios: number;
   pacientes: number;
   regiones: number;
-  eco: number;
-  rayosX: number;
+  modalidades: ItemModalidad[];
+  sexo: DemografiaSexo;
+  edad: DemografiaEdad;
+  anios: ItemAnio[];
 }
 
 interface Mapeo {
@@ -73,6 +119,18 @@ export const REGION_ES: Record<string, string> = {
 
 /** Regiones que no existen en el modelo masculino: se avisa en la interfaz. */
 export const REGION_SIN_MODELO = ['obstetrico', 'mama', 'prostata', 'tiroides'];
+
+/** Color institucional por modalidad (para las barras del panel). */
+export const COLOR_MODALIDAD: Record<string, string> = {
+  'Ecografía': '#0046ad',
+  'Rayos X': '#5b7fb7',
+  'Tomografía': '#7c5cbf',
+  'Resonancia': '#0f8a8a',
+  'Mamografía': '#b5527f',
+  'Medicina nuclear': '#c98a1b',
+  'PET': '#c9601b',
+  'Informe estructurado': '#8a97ab',
+};
 
 const API = (import.meta as unknown as { env: Record<string, string> })
   .env?.VITE_IPSEPACS_API ?? 'http://localhost:8081';
@@ -108,6 +166,31 @@ export async function regionesDeEstructura(
 /** Respuesta cruda del endpoint. */
 interface Crudo<T> { success?: boolean; error?: string; data?: T }
 
+/** Normaliza los numeros que la API puede devolver como texto. */
+const num = (v: unknown) => Number(v ?? 0) || 0;
+
+function normalizarDemografia<T extends {sexo?: DemografiaSexo; edad?: DemografiaEdad; edadPromedio?: unknown}>(x: T): T {
+  if (x.sexo) {
+    x.sexo = {
+      Femenino: num(x.sexo.Femenino),
+      Masculino: num(x.sexo.Masculino),
+      Otro: num(x.sexo.Otro),
+      'Sin dato': num(x.sexo['Sin dato']),
+    };
+  }
+  if (x.edad) {
+    x.edad = {
+      ...x.edad,
+      promedio: x.edad.promedio === null ? null : Number(x.edad.promedio),
+      mediana: x.edad.mediana === null ? null : Number(x.edad.mediana),
+      conDato: num(x.edad.conDato),
+      grupos: (x.edad.grupos ?? []).map(g => ({ etiqueta: g.etiqueta, n: num(g.n), pct: num(g.pct) })),
+    };
+  }
+  if (typeof x.edadPromedio === 'string') x.edadPromedio = Number(x.edadPromedio);
+  return x;
+}
+
 /** Estadistica por region (una sola llamada, se cachea). */
 export async function cargarRegiones(): Promise<RegionStats[]> {
   if (regionesCache) return regionesCache;
@@ -119,11 +202,12 @@ export async function cargarRegiones(): Promise<RegionStats[]> {
   });
   const j = (await r.json()) as Crudo<RegionStats[]>;
   if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudo obtener la estadística.');
-  regionesCache = j.data.map(x => ({
+  regionesCache = j.data.map(x => normalizarDemografia({
     ...x,
-    n: Number(x.n ?? 0),
-    eco: Number(x.eco ?? 0),
-    rx: Number(x.rx ?? 0),
+    n: num(x.n),
+    eco: num(x.eco),
+    rx: num(x.rx),
+    modalidades: (x.modalidades ?? []).map(m => ({ modalidad: m.modalidad, n: num(m.n), pct: num(m.pct) })),
   }));
   regionesCache.forEach(x => statsPorRegion.set(x.slug, x));
   return regionesCache;
@@ -142,7 +226,7 @@ export async function cargarKpis(): Promise<KpisInstitucion> {
   });
   const j = (await r.json()) as Crudo<KpisInstitucion>;
   if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudieron obtener los indicadores.');
-  return j.data;
+  return normalizarDemografia(j.data);
 }
 
 /** Estudios reales de la estructura seleccionada (se cachea por region). */
@@ -167,6 +251,8 @@ export async function cargarEstudiosEstructura(
   return j.data;
 }
 
+/* ------------------------------ formato ------------------------------ */
+
 export function nombrePaciente(p: string | null): string {
   if (!p) return 'Sin nombre';
   return p.replace(/\^/g, ' ').replace(/\s+/g, ' ').trim();
@@ -177,4 +263,31 @@ export function fechaCorta(f: string | null): string {
   const d = new Date(f);
   if (Number.isNaN(d.getTime())) return f;
   return d.toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export function numero(n: number | null | undefined): string {
+  return (n ?? 0).toLocaleString('es-EC');
+}
+
+/** "26 años" / "Sin dato". */
+export function edadTexto(edad: number | null | undefined): string {
+  if (edad === null || edad === undefined) return 'Sin dato';
+  return `${numero(edad)} ${edad === 1 ? 'año' : 'años'}`;
+}
+
+/** Porcentaje del total, con un decimal cuando aporta. */
+export function porcentaje(n: number, total: number): string {
+  if (!total) return '0%';
+  const p = (n * 100) / total;
+  return `${p >= 10 || p === 0 ? Math.round(p) : p.toFixed(1)}%`;
+}
+
+/** Reparte el sexo en un texto compacto: "F 68% · M 31%". */
+export function sexoResumen(sexo: DemografiaSexo | undefined): string {
+  if (!sexo) return '';
+  const total = (sexo.Femenino ?? 0) + (sexo.Masculino ?? 0) + (sexo.Otro ?? 0) + (sexo['Sin dato'] ?? 0);
+  if (!total) return '';
+  const f = Math.round(((sexo.Femenino ?? 0) * 100) / total);
+  const m = Math.round(((sexo.Masculino ?? 0) * 100) / total);
+  return `F ${f}% · M ${m}%`;
 }
