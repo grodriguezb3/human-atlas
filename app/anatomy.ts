@@ -1,3 +1,5 @@
+import type {MessageKey} from './i18n';
+
 export type SystemId = 'skeletal'|'muscular'|'arterial'|'venous'|'nervous'|'digestive'|'respiratory'|'urinary'|'reproductive'|'lymphatic'|'endocrine'|'integumentary'|'connective'|'sensory'|'cardiac';
 export const SYSTEMS: {id:SystemId;name:string;color:string;description:string}[] = [
  {id:'skeletal',name:'Skeleton',color:'#e2d9ba',description:'Bones form the supporting framework of the body, protect organs, and provide attachment points for muscles. Their internal tissue also stores minerals and produces blood cells.'},
@@ -34,3 +36,16 @@ export const EXPLANATIONS:Record<string,string> = {
  'diaphragm':'A broad muscle separating the chest and abdomen. When it contracts, it increases chest volume and helps draw air into the lungs.',
 };
 export function explanation(name:string,system:SystemId){return EXPLANATIONS[name.toLowerCase()] ?? SYSTEMS.find(s=>s.id===system)?.description ?? '';}
+
+/* --- Claves de traduccion (locales/<locale>.json) ------------------------- *
+ * Los nombres y descripciones de los sistemas y las explicaciones destacadas
+ * viven en el bundle de idioma; aqui solo se resuelve QUE clave usar, para que
+ * los componentes la pasen por t().                                          */
+export function systemLabelKey(id:SystemId):MessageKey{return `systems.${id}.name` as MessageKey;}
+export function systemDescriptionKey(id:SystemId):MessageKey{return `systems.${id}.description` as MessageKey;}
+
+/** Clave de la explicacion de un concepto: la destacada si existe, o la del sistema. */
+export function explanationKey(name:string,system:SystemId):MessageKey{
+ const key=name.toLowerCase();
+ return (EXPLANATIONS[key]?`explanations.${key}`:`systems.${system}.description`) as MessageKey;
+}

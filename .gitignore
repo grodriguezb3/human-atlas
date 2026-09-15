@@ -37,3 +37,7 @@ next-env.d.ts
 /outputs/
 /work/
 *.tsbuildinfo
+
+# bytecode de python (los scripts de i18n generan .pyc)
+__pycache__/
+*.pyc

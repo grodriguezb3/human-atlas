@@ -1,0 +1,209 @@
+{
+  "header": {
+    "eyebrow": "INTERACTIVE ANATOMY",
+    "title": "Human Atlas",
+    "modeledPieces": "{count} modeled pieces",
+    "datasetName": "BodyParts3D"
+  },
+  "a11y": {
+    "explorerPanels": "Explorer panels",
+    "searchAnatomy": "Search anatomy",
+    "aboutAtlas": "About this atlas",
+    "languageSwitcher": "Switch language",
+    "anatomicalLayers": "Anatomical layers",
+    "closeSystems": "Close systems",
+    "showSystem": "Show {system}",
+    "findAnatomy": "Find anatomy",
+    "closeSearch": "Close search",
+    "searchNamedStructures": "Search named anatomical structures",
+    "cameraControls": "Camera controls",
+    "pauseRotation": "Pause rotation",
+    "rotateBody": "Rotate body",
+    "resetViewAndLayers": "Reset view and layers",
+    "openSystemLayers": "Open system layers",
+    "assembleAndReset": "Assemble and reset",
+    "sceneCanvas": "Interactive human anatomy. Drag to orbit, pinch or scroll to zoom, and tap a structure to inspect it."
+  },
+  "search": {
+    "findStructure": "Find a structure",
+    "placeholder": "Heart, femur, cranial nerve…",
+    "noMatches": "No structures match your search.",
+    "pieceCount": "{count} {count, plural, one {piece} other {pieces}}",
+    "refineNote": "Showing up to 80 matches. Refine your search to find smaller structures.",
+    "startNote": "Start with a major organ, or search every named structure."
+  },
+  "panels": {
+    "systems": "Systems",
+    "presetAll": "All",
+    "presetSkeleton": "Skeleton",
+    "presetOrgans": "Organs",
+    "showOnlySystem": "Show only {system}",
+    "piecesVisible": "{count} pieces visible",
+    "hideAll": "Hide all"
+  },
+  "controls": {
+    "viewThreeQuarter": "three-quarter view",
+    "viewFront": "front view",
+    "viewSide": "side view",
+    "viewBack": "back view",
+    "autoRotate": "Auto rotate",
+    "reset": "Reset",
+    "captionSelected": "SELECTED STRUCTURE",
+    "captionInventory": "ANATOMICAL INVENTORY",
+    "captionSeparated": "SEPARATED STRUCTURES",
+    "captionDefault": "ADULT HUMAN · MALE",
+    "explodeAnatomy": "Explode anatomy",
+    "assembled": "Assembled",
+    "everyPiece": "Every piece",
+    "dragToPan": "Drag to pan",
+    "dragToOrbit": "Drag to orbit",
+    "pinchToZoom": "Pinch to zoom",
+    "tapToInspect": "Tap to inspect"
+  },
+  "common": {
+    "sourceAndCredits": "Source & credits"
+  },
+  "loading": {
+    "preparing": "Preparing the anatomy",
+    "progress": "{progress}% · Loading {count} pieces"
+  },
+  "errors": {
+    "catalogueLoadFailed": "The anatomy catalogue could not be loaded.",
+    "reloadViewer": "Reload viewer",
+    "webglUnavailable": "This browser could not start the 3D viewer. Please try a browser with WebGL enabled.",
+    "geometryAssemblyFailed": "Could not assemble anatomy geometry.",
+    "anatomyLoadFailed": "Could not load the anatomy.",
+    "contextLost": "The 3D session was paused by your device. Reload to continue.",
+    "fileLoadFailed": "An anatomy file could not be loaded.",
+    "fileIncomplete": "An anatomy file was incomplete. Please reload the viewer."
+  },
+  "details": {
+    "defaultSystemEyebrow": "ANATOMY",
+    "systemOverviewNote": "System overview · structure identified from source anatomy",
+    "atlasReference": "Atlas reference",
+    "selectedPieces": "Selected pieces",
+    "includedStructures": "Included structures",
+    "morePieces": "And {count} more modeled pieces.",
+    "viewAnatomicalSource": "View anatomical source",
+    "showSurrounding": "Show surrounding anatomy",
+    "isolateStructure": "Isolate structure",
+    "clearSelection": "Clear selection"
+  },
+  "about": {
+    "eyebrow": "SOURCE & SCOPE",
+    "title": "A body, revealed.",
+    "subtitle": "Explore the adult male reference anatomy from BodyParts3D.",
+    "datasetLabel": "Male · BodyParts3D",
+    "datasetStats": "2,234 individual meshes and 3,432 named concepts from an adult male reference anatomy.",
+    "scopeNote": "This reference does not contain every human structure or variation. Named concepts can contain multiple pieces; each source mesh is rendered once.",
+    "disclaimer": "Colors and system groupings are designed for exploration. The geometry is simplified for the web, and short explanations provide general educational context. This is an anatomical reference, not a diagnostic or surgical tool.",
+    "sourceHeading": "Source",
+    "licenseNotice": "BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International.",
+    "datasetLicense": "Dataset license",
+    "originalGeometry": "Original geometry & metadata",
+    "sourcePublication": "Read the source publication"
+  },
+  "agent": {
+    "findToolDescription": "Find anatomical structures by name or source atlas identifier in this atlas.",
+    "inspectToolDescription": "Select an atlas concept in the 3D anatomy and open its visible detail panel.",
+    "errorObjectExpected": "Expected an object.",
+    "errorQueryRequired": "A nonempty query is required.",
+    "errorIdRequired": "An atlas identifier is required.",
+    "errorNotInAtlas": "That structure is not present in this atlas."
+  },
+  "ui": {
+    "breadcrumb": "breadcrumb",
+    "more": "More",
+    "closeToast": "Close toast",
+    "close": "Close",
+    "pagination": "pagination",
+    "goToPreviousPage": "Go to previous page",
+    "goToNextPage": "Go to next page",
+    "morePages": "More pages",
+    "previous": "Previous",
+    "next": "Next",
+    "loading": "Loading",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "toggleSidebar": "Toggle Sidebar",
+    "sidebarTitle": "Sidebar",
+    "sidebarDescription": "Displays the mobile sidebar.",
+    "commandPalette": "Command Palette",
+    "commandPlaceholder": "Search for a command to run...",
+    "scrollToEnd": "Scroll to end",
+    "scrollToStart": "Scroll to start"
+  },
+  "systems": {
+    "skeletal": {
+      "name": "Skeleton",
+      "description": "Bones form the supporting framework of the body, protect organs, and provide attachment points for muscles. Their internal tissue also stores minerals and produces blood cells."
+    },
+    "muscular": {
+      "name": "Muscles",
+      "description": "Skeletal muscles generate movement by pulling on their attachments. Together with tendons, they move joints, stabilize posture, and produce heat."
+    },
+    "cardiac": {
+      "name": "Heart",
+      "description": "The heart is a muscular pump with four chambers. Its valves direct blood forward through the pulmonary and systemic circuits."
+    },
+    "sensory": {
+      "name": "Sensory organs",
+      "description": "These structures contribute to special senses, including sight, hearing, and balance. Their specialized tissues detect stimuli and work with the nervous system to convey information."
+    },
+    "arterial": {
+      "name": "Arteries",
+      "description": "The heart drives blood through the circulation. Arteries carry blood away from the heart to supply tissues or, in the pulmonary circuit, to the lungs."
+    },
+    "venous": {
+      "name": "Veins",
+      "description": "Veins return blood toward the heart. Superficial and deep networks collect blood from the tissues; the pulmonary veins bring oxygenated blood back from the lungs."
+    },
+    "nervous": {
+      "name": "Nervous system",
+      "description": "The brain, spinal cord, and peripheral nerves carry and process signals. They support sensation, movement, coordination, and automatic regulation of body functions."
+    },
+    "respiratory": {
+      "name": "Respiratory",
+      "description": "The airways conduct air to the lungs, where oxygen and carbon dioxide move between air and blood. Breathing depends on pressure changes produced by respiratory muscles."
+    },
+    "digestive": {
+      "name": "Digestive",
+      "description": "The digestive tract breaks down food, absorbs nutrients and water, and moves waste onward. Accessory organs contribute bile and digestive enzymes."
+    },
+    "urinary": {
+      "name": "Urinary",
+      "description": "The kidneys filter blood and regulate fluid, electrolyte, and acid–base balance. Urine travels through the ureters to the bladder and exits through the urethra."
+    },
+    "lymphatic": {
+      "name": "Lymphatic",
+      "description": "Lymphatic vessels return excess tissue fluid to the circulation. Lymph nodes and other lymphoid organs support immune surveillance and responses."
+    },
+    "endocrine": {
+      "name": "Endocrine",
+      "description": "Endocrine organs release hormones into the blood to coordinate processes such as metabolism, growth, stress responses, and reproduction."
+    },
+    "reproductive": {
+      "name": "Reproductive",
+      "description": "The male reproductive structures represented here contribute to sperm production, maturation, transport, and the production of sex hormones."
+    },
+    "integumentary": {
+      "name": "Body surface",
+      "description": "The body surface provides an outer anatomical reference. The integumentary system forms a protective barrier and contributes to sensation and temperature regulation."
+    },
+    "connective": {
+      "name": "Connective tissue",
+      "description": "Cartilage, ligaments, and other connective tissues support, connect, and separate structures. Their roles include stabilizing joints and distributing mechanical loads."
+    }
+  },
+  "explanations": {
+    "heart": "A muscular pump in the chest. Its right side sends blood to the lungs; its left side sends blood through the systemic circulation.",
+    "liver": "A large organ beneath the right side of the diaphragm. It processes absorbed nutrients, produces bile, and synthesizes many proteins carried in the blood.",
+    "brain": "The central organ of the nervous system. Its interconnected regions support perception, movement, memory, language, and the regulation of bodily functions.",
+    "stomach": "A muscular chamber between the esophagus and small intestine. It stores and mixes food with acid and enzymes before releasing it into the duodenum.",
+    "spleen": "A lymphoid organ in the upper left abdomen. It filters blood, removes aging blood cells, and participates in immune responses.",
+    "pancreas": "An abdominal organ with digestive and endocrine roles. It supplies enzymes to the small intestine and releases hormones including insulin and glucagon.",
+    "urinary bladder": "A muscular reservoir in the pelvis that stores urine arriving from the kidneys through the ureters.",
+    "trachea": "The main airway connecting the larynx to the bronchi. Its cartilage supports keep the airway open during breathing.",
+    "diaphragm": "A broad muscle separating the chest and abdomen. When it contracts, it increases chest volume and helps draw air into the lungs."
+  }
+}
