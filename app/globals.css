@@ -67,6 +67,8 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 /* Segunda linea de estadistica en el tooltip del cuerpo */
 .part-hover b{display:block;font-weight:600}
 .part-hover span{display:block;margin-top:3px;font-size:11.5px;color:#bcd6f5;letter-spacing:.01em}
+/* Selector de idioma (ES/EN) en la barra superior */
+.locale-tag{font-size:11px;font-weight:600;letter-spacing:.06em;opacity:.72;margin-left:1px}
 .search-panel{border-radius:14px}.search-panel [data-slot=input-group]{border-radius:9px;background:#f7f9fa}.anatomy-search-results{border-radius:12px!important}.about-sheet{border-radius:16px 0 0 16px}.about-copy strong{font-weight:600}.loading{border-radius:14px}.loading strong{font-weight:500}.part-hover{border-radius:8px;font-size:12px}
 @media(min-width:1400px){.system-row,.system-name{min-height:38px}.system-name{font-size:13px}}
 @media(max-width:1000px){.layers-panel{padding-inline:10px}.system-name{font-size:11px}}

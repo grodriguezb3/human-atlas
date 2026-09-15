@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import {translate} from '@/app/i18n';
+
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from 'embla-carousel-react';
@@ -196,7 +198,7 @@ function CarouselPrevious({
       {...props}
     >
       <ChevronLeftIcon className="cn-rtl-flip" />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{translate('ui.previousSlide')}</span>
     </Button>
   );
 }
@@ -226,7 +228,7 @@ function CarouselNext({
       {...props}
     >
       <ChevronRightIcon className="cn-rtl-flip" />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{translate('ui.nextSlide')}</span>
     </Button>
   );
 }

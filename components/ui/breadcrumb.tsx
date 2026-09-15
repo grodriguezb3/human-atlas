@@ -1,4 +1,6 @@
 import * as React from 'react';
+import {translate} from '@/app/i18n';
+
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
@@ -8,7 +10,7 @@ import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
 function Breadcrumb({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
     <nav
-      aria-label="breadcrumb"
+      aria-label={translate('ui.breadcrumb')}
       data-slot="breadcrumb"
       className={cn(className)}
       {...props}
@@ -106,7 +108,7 @@ function BreadcrumbEllipsis({
       {...props}
     >
       <MoreHorizontalIcon />
-      <span className="sr-only">More</span>
+      <span className="sr-only">{translate('ui.more')}</span>
     </span>
   );
 }

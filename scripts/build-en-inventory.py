@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Generate locales/en.json from the hardcoded string inventory and report per-file counts."""
+import json, collections
+
+# (namespace, key, english, source_file)
+INV = [
+ # ---- app/page.tsx ----
+ ("header","eyebrow","INTERACTIVE ANATOMY","app/page.tsx"),
+ ("header","title","Human Atlas","app/page.tsx"),
+ ("header","modeledPieces","{count} modeled pieces","app/page.tsx"),
+ ("header","datasetName","BodyParts3D","app/page.tsx"),
+ ("a11y","explorerPanels","Explorer panels","app/page.tsx"),
+ ("search","findStructure","Find a structure","app/page.tsx"),
+ ("a11y","searchAnatomy","Search anatomy","app/page.tsx"),
+ ("a11y","aboutAtlas","About this atlas","app/page.tsx"),
+ ("a11y","anatomicalLayers","Anatomical layers","app/page.tsx"),
+ ("panels","systems","Systems","app/page.tsx"),
+ ("a11y","closeSystems","Close systems","app/page.tsx"),
+ ("panels","presetAll","All","app/page.tsx"),
+ ("panels","presetSkeleton","Skeleton","app/page.tsx"),
+ ("panels","presetOrgans","Organs","app/page.tsx"),
+ ("panels","showOnlySystem","Show only {system}","app/page.tsx"),
+ ("a11y","showSystem","Show {system}","app/page.tsx"),
+ ("panels","piecesVisible","{count} pieces visible","app/page.tsx"),
+ ("panels","hideAll","Hide all","app/page.tsx"),
+ ("a11y","findAnatomy","Find anatomy","app/page.tsx"),
+ ("a11y","closeSearch","Close search","app/page.tsx"),
+ ("search","placeholder","Heart, femur, cranial nerve…","app/page.tsx"),
+ ("a11y","searchNamedStructures","Search named anatomical structures","app/page.tsx"),
+ ("search","noMatches","No structures match your search.","app/page.tsx"),
+ ("search","pieceCount","{count} {count, plural, one {piece} other {pieces}}","app/page.tsx"),
+ ("search","refineNote","Showing up to 80 matches. Refine your search to find smaller structures.","app/page.tsx"),
+ ("search","startNote","Start with a major organ, or search every named structure.","app/page.tsx"),
+ ("a11y","cameraControls","Camera controls","app/page.tsx"),
+ ("controls","viewThreeQuarter","three-quarter view","app/page.tsx"),
+ ("controls","viewFront","front view","app/page.tsx"),
+ ("controls","viewSide","side view","app/page.tsx"),
+ ("controls","viewBack","back view","app/page.tsx"),
+ ("a11y","pauseRotation","Pause rotation","app/page.tsx"),
+ ("a11y","rotateBody","Rotate body","app/page.tsx"),
+ ("controls","autoRotate","Auto rotate","app/page.tsx"),
+ ("a11y","resetViewAndLayers","Reset view and layers","app/page.tsx"),
+ ("controls","reset","Reset","app/page.tsx"),
+ ("controls","captionSelected","SELECTED STRUCTURE","app/page.tsx"),
+ ("controls","captionInventory","ANATOMICAL INVENTORY","app/page.tsx"),
+ ("controls","captionSeparated","SEPARATED STRUCTURES","app/page.tsx"),
+ ("controls","captionDefault","ADULT HUMAN · MALE","app/page.tsx"),
+ ("a11y","openSystemLayers","Open system layers","app/page.tsx"),
+ ("controls","explodeAnatomy","Explode anatomy","app/page.tsx"),
+ ("controls","assembled","Assembled","app/page.tsx"),
+ ("controls","everyPiece","Every piece","app/page.tsx"),
+ ("a11y","assembleAndReset","Assemble and reset","app/page.tsx"),
+ ("controls","dragToPan","Drag to pan","app/page.tsx"),
+ ("controls","dragToOrbit","Drag to orbit","app/page.tsx"),
+ ("controls","pinchToZoom","Pinch to zoom","app/page.tsx"),
+ ("controls","tapToInspect","Tap to inspect","app/page.tsx"),
+ ("common","sourceAndCredits","Source & credits","app/page.tsx"),
+ ("loading","preparing","Preparing the anatomy","app/page.tsx"),
+ ("loading","progress","{progress}% · Loading {count} pieces","app/page.tsx"),
+ ("errors","catalogueLoadFailed","The anatomy catalogue could not be loaded.","app/page.tsx"),
+ ("errors","reloadViewer","Reload viewer","app/page.tsx"),
+ ("details","defaultSystemEyebrow","ANATOMY","app/page.tsx"),
+ ("details","systemOverviewNote","System overview · structure identified from source anatomy","app/page.tsx"),
+ ("details","atlasReference","Atlas reference","app/page.tsx"),
+ ("details","selectedPieces","Selected pieces","app/page.tsx"),
+ ("details","includedStructures","Included structures","app/page.tsx"),
+ ("details","morePieces","And {count} more modeled pieces.","app/page.tsx"),
+ ("details","viewAnatomicalSource","View anatomical source","app/page.tsx"),
+ ("details","showSurrounding","Show surrounding anatomy","app/page.tsx"),
+ ("details","isolateStructure","Isolate structure","app/page.tsx"),
+ ("details","clearSelection","Clear selection","app/page.tsx"),
+ ("about","eyebrow","SOURCE & SCOPE","app/page.tsx"),
+ ("about","title","A body, revealed.","app/page.tsx"),
+ ("about","subtitle","Explore the adult male reference anatomy from BodyParts3D.","app/page.tsx"),
+ ("about","datasetLabel","Male · BodyParts3D","app/page.tsx"),
+ ("about","datasetStats","2,234 individual meshes and 3,432 named concepts from an adult male reference anatomy.","app/page.tsx"),
+ ("about","scopeNote","This reference does not contain every human structure or variation. Named concepts can contain multiple pieces; each source mesh is rendered once.","app/page.tsx"),
+ ("about","disclaimer","Colors and system groupings are designed for exploration. The geometry is simplified for the web, and short explanations provide general educational context. This is an anatomical reference, not a diagnostic or surgical tool.","app/page.tsx"),
+ ("about","sourceHeading","Source","app/page.tsx"),
+ ("about","licenseNotice","BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International.","app/page.tsx"),
+ ("about","datasetLicense","Dataset license","app/page.tsx"),
+ ("about","originalGeometry","Original geometry & metadata","app/page.tsx"),
+ ("about","sourcePublication","Read the source publication","app/page.tsx"),
+ # ---- app/scene.tsx ----
+ ("errors","webglUnavailable","This browser could not start the 3D viewer. Please try a browser with WebGL enabled.","app/scene.tsx"),
+ ("a11y","sceneCanvas","Interactive human anatomy. Drag to orbit, pinch or scroll to zoom, and tap a structure to inspect it.","app/scene.tsx"),
+ ("errors","geometryAssemblyFailed","Could not assemble anatomy geometry.","app/scene.tsx"),
+ ("errors","anatomyLoadFailed","Could not load the anatomy.","app/scene.tsx"),
+ ("errors","contextLost","The 3D session was paused by your device. Reload to continue.","app/scene.tsx"),
+ # ---- app/model-download.ts ----
+ ("errors","fileLoadFailed","An anatomy file could not be loaded.","app/model-download.ts"),
+ ("errors","fileIncomplete","An anatomy file was incomplete. Please reload the viewer.","app/model-download.ts"),
+ # ---- app/agent-tools.ts (AI-agent facing; candidates to keep EN) ----
+ ("agent","findToolDescription","Find anatomical structures by name or source atlas identifier in this atlas.","app/agent-tools.ts"),
+ ("agent","inspectToolDescription","Select an atlas concept in the 3D anatomy and open its visible detail panel.","app/agent-tools.ts"),
+ ("agent","errorObjectExpected","Expected an object.","app/agent-tools.ts"),
+ ("agent","errorQueryRequired","A nonempty query is required.","app/agent-tools.ts"),
+ ("agent","errorIdRequired","An atlas identifier is required.","app/agent-tools.ts"),
+ ("agent","errorNotInAtlas","That structure is not present in this atlas.","app/agent-tools.ts"),
+ # ---- components/ui/* (shared library a11y strings) ----
+ ("ui","breadcrumb","breadcrumb","components/ui/breadcrumb.tsx"),
+ ("ui","more","More","components/ui/breadcrumb.tsx"),
+ ("ui","closeToast","Close toast","components/ui/toast.tsx"),
+ ("ui","close","Close","components/ui/sheet.tsx + components/ui/dialog.tsx"),
+ ("ui","pagination","pagination","components/ui/pagination.tsx"),
+ ("ui","goToPreviousPage","Go to previous page","components/ui/pagination.tsx"),
+ ("ui","goToNextPage","Go to next page","components/ui/pagination.tsx"),
+ ("ui","morePages","More pages","components/ui/pagination.tsx"),
+ ("ui","previous","Previous","components/ui/pagination.tsx"),
+ ("ui","next","Next","components/ui/pagination.tsx"),
+ ("ui","loading","Loading","components/ui/spinner.tsx"),
+ ("ui","previousSlide","Previous slide","components/ui/carousel.tsx"),
+ ("ui","nextSlide","Next slide","components/ui/carousel.tsx"),
+ ("ui","toggleSidebar","Toggle Sidebar","components/ui/sidebar.tsx"),
+ ("ui","sidebarTitle","Sidebar","components/ui/sidebar.tsx"),
+ ("ui","sidebarDescription","Displays the mobile sidebar.","components/ui/sidebar.tsx"),
+ ("ui","commandPalette","Command Palette","components/ui/command.tsx"),
+ ("ui","commandPlaceholder","Search for a command to run...","components/ui/command.tsx"),
+ ("ui","scrollToEnd","Scroll to end","components/ui/message-scroller.tsx"),
+ ("ui","scrollToStart","Scroll to start","components/ui/message-scroller.tsx"),
+]
+
+locale = collections.OrderedDict()
+for ns, key, en, _src in INV:
+    locale.setdefault(ns, collections.OrderedDict())[key] = en
+
+with open("locales/en.json", "w") as f:
+    json.dump(locale, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+
+counts = collections.Counter(src for *_x, src in INV)
+print("TOTAL strings inventoried:", len(INV))
+for src, n in counts.most_common():
+    print(f"  {src}: {n}")
+print("namespaces:", {ns: len(v) for ns, v in locale.items()})

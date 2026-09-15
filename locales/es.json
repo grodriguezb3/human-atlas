@@ -1,0 +1,209 @@
+{
+  "header": {
+    "eyebrow": "ANATOMÍA INTERACTIVA",
+    "title": "Human Atlas",
+    "modeledPieces": "{count} piezas modeladas",
+    "datasetName": "BodyParts3D"
+  },
+  "a11y": {
+    "explorerPanels": "Paneles del explorador",
+    "searchAnatomy": "Buscar anatomía",
+    "aboutAtlas": "Acerca de este atlas",
+    "languageSwitcher": "Cambiar idioma",
+    "anatomicalLayers": "Capas anatómicas",
+    "closeSystems": "Cerrar sistemas",
+    "showSystem": "Mostrar {system}",
+    "findAnatomy": "Buscar anatomía",
+    "closeSearch": "Cerrar búsqueda",
+    "searchNamedStructures": "Buscar estructuras anatómicas con nombre",
+    "cameraControls": "Controles de cámara",
+    "pauseRotation": "Pausar rotación",
+    "rotateBody": "Rotar el cuerpo",
+    "resetViewAndLayers": "Restablecer vista y capas",
+    "openSystemLayers": "Abrir las capas de sistemas",
+    "assembleAndReset": "Armar y restablecer",
+    "sceneCanvas": "Anatomía humana interactiva. Arrastre para girar, pellizque o use la rueda para acercar, y toque una estructura para inspeccionarla."
+  },
+  "search": {
+    "findStructure": "Buscar una estructura",
+    "placeholder": "Corazón, fémur, nervio craneal…",
+    "noMatches": "Ninguna estructura coincide con su búsqueda.",
+    "pieceCount": "{count} {count, plural, one {pieza} other {piezas}}",
+    "refineNote": "Se muestran hasta 80 coincidencias. Afine la búsqueda para encontrar estructuras más pequeñas.",
+    "startNote": "Empiece por un órgano principal, o busque cualquier estructura con nombre."
+  },
+  "panels": {
+    "systems": "Sistemas",
+    "presetAll": "Todos",
+    "presetSkeleton": "Esqueleto",
+    "presetOrgans": "Órganos",
+    "showOnlySystem": "Mostrar solo {system}",
+    "piecesVisible": "{count} piezas visibles",
+    "hideAll": "Ocultar todo"
+  },
+  "controls": {
+    "viewThreeQuarter": "vista de tres cuartos",
+    "viewFront": "vista frontal",
+    "viewSide": "vista lateral",
+    "viewBack": "vista posterior",
+    "autoRotate": "Rotación automática",
+    "reset": "Restablecer",
+    "captionSelected": "ESTRUCTURA SELECCIONADA",
+    "captionInventory": "INVENTARIO ANATÓMICO",
+    "captionSeparated": "ESTRUCTURAS SEPARADAS",
+    "captionDefault": "ADULTO HUMANO · MASCULINO",
+    "explodeAnatomy": "Separar la anatomía",
+    "assembled": "Armado",
+    "everyPiece": "Todas las piezas",
+    "dragToPan": "Arrastre para desplazar",
+    "dragToOrbit": "Arrastre para girar",
+    "pinchToZoom": "Pellizque para acercar",
+    "tapToInspect": "Toque para inspeccionar"
+  },
+  "common": {
+    "sourceAndCredits": "Fuente y créditos"
+  },
+  "loading": {
+    "preparing": "Preparando la anatomía",
+    "progress": "{progress}% · Cargando {count} piezas"
+  },
+  "errors": {
+    "catalogueLoadFailed": "No se pudo cargar el catálogo anatómico.",
+    "reloadViewer": "Recargar el visor",
+    "webglUnavailable": "Este navegador no pudo iniciar el visor 3D. Pruebe con un navegador que tenga WebGL habilitado.",
+    "geometryAssemblyFailed": "No se pudo armar la geometría anatómica.",
+    "anatomyLoadFailed": "No se pudo cargar la anatomía.",
+    "contextLost": "Su dispositivo pausó la sesión 3D. Recargue para continuar.",
+    "fileLoadFailed": "No se pudo cargar un archivo de anatomía.",
+    "fileIncomplete": "Un archivo de anatomía estaba incompleto. Recargue el visor."
+  },
+  "details": {
+    "defaultSystemEyebrow": "ANATOMÍA",
+    "systemOverviewNote": "Reseña del sistema · estructura identificada desde la anatomía de origen",
+    "atlasReference": "Referencia del atlas",
+    "selectedPieces": "Piezas seleccionadas",
+    "includedStructures": "Estructuras incluidas",
+    "morePieces": "Y {count} piezas modeladas más.",
+    "viewAnatomicalSource": "Ver la fuente anatómica",
+    "showSurrounding": "Mostrar la anatomía circundante",
+    "isolateStructure": "Aislar la estructura",
+    "clearSelection": "Limpiar la selección"
+  },
+  "about": {
+    "eyebrow": "FUENTE Y ALCANCE",
+    "title": "Un cuerpo, revelado.",
+    "subtitle": "Explore la anatomía de referencia de un adulto masculino de BodyParts3D.",
+    "datasetLabel": "Masculino · BodyParts3D",
+    "datasetStats": "2.234 mallas individuales y 3.432 conceptos con nombre provenientes de una anatomía de referencia de adulto masculino.",
+    "scopeNote": "Esta referencia no contiene todas las estructuras ni todas las variaciones humanas. Los conceptos con nombre pueden agrupar varias piezas; cada malla de origen se dibuja una sola vez.",
+    "disclaimer": "Los colores y las agrupaciones por sistema están pensados para la exploración. La geometría está simplificada para la web y las explicaciones breves ofrecen contexto educativo general. Esta es una referencia anatómica, no una herramienta de diagnóstico ni quirúrgica.",
+    "sourceHeading": "Fuente",
+    "licenseNotice": "BodyParts3D, © The Database Center for Life Science, con licencia CC Attribution 4.0 International.",
+    "datasetLicense": "Licencia del conjunto de datos",
+    "originalGeometry": "Geometría y metadatos originales",
+    "sourcePublication": "Leer la publicación de origen"
+  },
+  "agent": {
+    "findToolDescription": "Busca estructuras anatómicas por nombre o por identificador del atlas de origen en este atlas.",
+    "inspectToolDescription": "Selecciona un concepto del atlas en la anatomía 3D y abre su panel de detalle visible.",
+    "errorObjectExpected": "Se esperaba un objeto.",
+    "errorQueryRequired": "Se requiere una consulta no vacía.",
+    "errorIdRequired": "Se requiere un identificador del atlas.",
+    "errorNotInAtlas": "Esa estructura no está presente en este atlas."
+  },
+  "ui": {
+    "breadcrumb": "ruta de navegación",
+    "more": "Más",
+    "closeToast": "Cerrar la notificación",
+    "close": "Cerrar",
+    "pagination": "paginación",
+    "goToPreviousPage": "Ir a la página anterior",
+    "goToNextPage": "Ir a la página siguiente",
+    "morePages": "Más páginas",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "loading": "Cargando",
+    "previousSlide": "Diapositiva anterior",
+    "nextSlide": "Diapositiva siguiente",
+    "toggleSidebar": "Mostrar u ocultar el panel lateral",
+    "sidebarTitle": "Panel lateral",
+    "sidebarDescription": "Muestra el panel lateral en móvil.",
+    "commandPalette": "Paleta de comandos",
+    "commandPlaceholder": "Buscar un comando para ejecutar…",
+    "scrollToEnd": "Desplazar al final",
+    "scrollToStart": "Desplazar al inicio"
+  },
+  "systems": {
+    "skeletal": {
+      "name": "Esqueleto",
+      "description": "Los huesos forman el armazón de sostén del cuerpo, protegen los órganos y sirven de inserción a los músculos. Su tejido interno también almacena minerales y produce células sanguíneas."
+    },
+    "muscular": {
+      "name": "Músculos",
+      "description": "Los músculos esqueléticos generan movimiento al traccionar de sus inserciones. Junto con los tendones, movilizan las articulaciones, estabilizan la postura y producen calor."
+    },
+    "cardiac": {
+      "name": "Corazón",
+      "description": "El corazón es una bomba muscular de cuatro cavidades. Sus válvulas dirigen la sangre hacia adelante a través de los circuitos pulmonar y sistémico."
+    },
+    "sensory": {
+      "name": "Órganos de los sentidos",
+      "description": "Estas estructuras intervienen en los sentidos especiales, como la vista, la audición y el equilibrio. Sus tejidos especializados detectan estímulos y, junto con el sistema nervioso, transmiten la información."
+    },
+    "arterial": {
+      "name": "Arterias",
+      "description": "El corazón impulsa la sangre por la circulación. Las arterias llevan la sangre desde el corazón para irrigar los tejidos o, en el circuito pulmonar, hacia los pulmones."
+    },
+    "venous": {
+      "name": "Venas",
+      "description": "Las venas devuelven la sangre hacia el corazón. Las redes superficiales y profundas recogen la sangre de los tejidos; las venas pulmonares traen de vuelta la sangre oxigenada desde los pulmones."
+    },
+    "nervous": {
+      "name": "Sistema nervioso",
+      "description": "El cerebro, la médula espinal y los nervios periféricos conducen y procesan señales. Sostienen la sensibilidad, el movimiento, la coordinación y la regulación automática de las funciones del cuerpo."
+    },
+    "respiratory": {
+      "name": "Respiratorio",
+      "description": "Las vías respiratorias conducen el aire hasta los pulmones, donde el oxígeno y el dióxido de carbono se intercambian entre el aire y la sangre. La respiración depende de los cambios de presión que producen los músculos respiratorios."
+    },
+    "digestive": {
+      "name": "Digestivo",
+      "description": "El tubo digestivo descompone los alimentos, absorbe nutrientes y agua, y conduce los desechos. Los órganos anexos aportan bilis y enzimas digestivas."
+    },
+    "urinary": {
+      "name": "Urinario",
+      "description": "Los riñones filtran la sangre y regulan el equilibrio de líquidos, electrolitos y ácido-base. La orina viaja por los uréteres hasta la vejiga y sale por la uretra."
+    },
+    "lymphatic": {
+      "name": "Linfático",
+      "description": "Los vasos linfáticos devuelven al torrente circulatorio el exceso de líquido tisular. Los ganglios y otros órganos linfoides participan en la vigilancia y la respuesta inmunitarias."
+    },
+    "endocrine": {
+      "name": "Endocrino",
+      "description": "Los órganos endocrinos liberan hormonas a la sangre para coordinar procesos como el metabolismo, el crecimiento, la respuesta al estrés y la reproducción."
+    },
+    "reproductive": {
+      "name": "Reproductivo",
+      "description": "Las estructuras reproductivas masculinas aquí representadas intervienen en la producción, la maduración y el transporte de los espermatozoides, y en la producción de hormonas sexuales."
+    },
+    "integumentary": {
+      "name": "Superficie corporal",
+      "description": "La superficie corporal sirve de referencia anatómica externa. El sistema tegumentario forma una barrera protectora y contribuye a la sensibilidad y a la regulación de la temperatura."
+    },
+    "connective": {
+      "name": "Tejido conectivo",
+      "description": "Los cartílagos, los ligamentos y otros tejidos conectivos sostienen, conectan y separan estructuras. Sus funciones incluyen estabilizar las articulaciones y distribuir las cargas mecánicas."
+    }
+  },
+  "explanations": {
+    "heart": "Una bomba muscular situada en el tórax. Su lado derecho envía la sangre a los pulmones; su lado izquierdo la impulsa por la circulación sistémica.",
+    "liver": "Un órgano grande situado bajo el lado derecho del diafragma. Procesa los nutrientes absorbidos, produce bilis y sintetiza muchas proteínas que circulan en la sangre.",
+    "brain": "El órgano central del sistema nervioso. Sus regiones interconectadas sostienen la percepción, el movimiento, la memoria, el lenguaje y la regulación de las funciones corporales.",
+    "stomach": "Una cámara muscular entre el esófago y el intestino delgado. Almacena y mezcla los alimentos con ácido y enzimas antes de vaciarlos hacia el duodeno.",
+    "spleen": "Un órgano linfoide del cuadrante superior izquierdo del abdomen. Filtra la sangre, retira los glóbulos envejecidos y participa en la respuesta inmunitaria.",
+    "pancreas": "Un órgano abdominal con funciones digestivas y endocrinas. Aporta enzimas al intestino delgado y libera hormonas como la insulina y el glucagón.",
+    "urinary bladder": "Un reservorio muscular de la pelvis que almacena la orina que llega desde los riñones por los uréteres.",
+    "trachea": "La vía aérea principal que conecta la laringe con los bronquios. Sus anillos de cartílago mantienen la vía abierta durante la respiración.",
+    "diaphragm": "Un músculo ancho que separa el tórax del abdomen. Al contraerse, aumenta el volumen torácico y ayuda a que el aire entre en los pulmones."
+  }
+}
