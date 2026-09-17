@@ -15,6 +15,7 @@ import {
   cargarEstudiosEstructura,
   claveFiltros,
   generarLinkAnonimo,
+  pedirVerImagenes,
   edadTexto,
   fechaCorta,
   numero,
@@ -299,8 +300,11 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [regionElegida, nombre, claveFiltros(filtros)]);
 
-  /* Abre el estudio en el visor con enlace anonimo (un solo uso, sin datos). */
-  const abrirImagenes = (studyUid: string) => {
+  /* Abre el estudio en el visor con enlace anonimo (un solo uso, sin datos).
+     Si el atlas esta dentro de la APP, el visor lo abre la app (bottom sheet con
+     galeria o visor) y aqui no se hace nada; en la web sigue igual que siempre. */
+  const abrirImagenes = (studyUid: string, orthancUid = '') => {
+    if (pedirVerImagenes(studyUid, orthancUid)) return;
     setAbriendo(studyUid);
     generarLinkAnonimo(studyUid)
       .then(url => {
@@ -494,7 +498,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                         type="button"
                         className="ipse-ver-imagenes"
                         disabled={abriendo === e.study_uid}
-                        onClick={() => abrirImagenes(e.study_uid as string)}
+                        onClick={() => abrirImagenes(e.study_uid as string, (e.orthanc_uid as string) ?? '')}
                       >
                         {abriendo === e.study_uid ? 'Abriendo…' : 'Ver imágenes'}
                       </button>

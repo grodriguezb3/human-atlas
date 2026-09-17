@@ -61,6 +61,8 @@ export interface EstudioClinico {
   edad?: number | null;
   fecha: string | null;
   study_uid: string | null;
+  // Identificador interno de Orthanc: lo usa la APP movil para abrir su galeria.
+  orthanc_uid?: string | null;
   id_study: number | string | null;
 }
 
@@ -162,6 +164,42 @@ export const COLOR_MODALIDAD: Record<string, string> = {
 const API = (import.meta as unknown as { env: Record<string, string> })
   .env?.VITE_IPSEPACS_API ?? 'http://localhost:8081';
 
+/* MODO APP: la app movil abre el atlas con ?user_id=NN. Dentro de su WebView no
+ * hay cookie de sesion del PACS, asi que la identificacion viaja en cada
+ * peticion (mismo patron que el resto de endpoints de la app). Sin ese parametro
+ * nada cambia: la web sigue entrando por sesion, igual que siempre. */
+export const USER_ID_APP = (() => {
+  try {
+    const v = new URLSearchParams(window.location.search).get('user_id');
+    return v && /^[0-9]+$/.test(v) ? v : '';
+  } catch {
+    return '';
+  }
+})();
+
+export const ES_APP = USER_ID_APP !== '';
+
+/** Anade el identificador de la app (si viene) al cuerpo de una peticion. */
+function conUsuarioApp(cuerpo: URLSearchParams): URLSearchParams {
+  if (USER_ID_APP) cuerpo.set('user_id', USER_ID_APP);
+  return cuerpo;
+}
+
+/** Avisa a la app (WebView) para que abra SU visor de imagenes. En la web no
+ *  existe el canal, asi que se comporta como siempre. */
+export function pedirVerImagenes(studyUid: string, orthancUid = ''): boolean {
+  const canal = (window as unknown as { IPSEApp?: { postMessage: (s: string) => void } }).IPSEApp;
+  if (!canal || !studyUid) return false;
+  try {
+    canal.postMessage(
+      JSON.stringify({ accion: 'verImagenes', study_uid: studyUid, orthanc_uid: orthancUid }),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /* Ruta base del visor: permite publicarlo en una subcarpeta del PACS
    (p. ej. https://pacs.ipse.com.ec/atlas/) sin romper el desarrollo local. */
 export const RUTA_BASE = (import.meta as unknown as { env: Record<string, string> })
@@ -241,7 +279,7 @@ export async function cargarRegiones(filtros: FiltrosAtlas = FILTROS_VACIOS): Pr
   const clave = claveFiltros(filtros);
   const guardado = cacheRegiones.get(clave);
   if (guardado) return guardado;
-  const cuerpo = aplicarFiltros(new URLSearchParams({ Requerimiento: 'Regiones' }), filtros);
+  const cuerpo = conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'Regiones' }), filtros));
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
@@ -269,7 +307,7 @@ export function statsDeRegion(slug: string): RegionStats | undefined {
 }
 
 export async function cargarKpis(filtros: FiltrosAtlas = FILTROS_VACIOS): Promise<KpisInstitucion> {
-  const cuerpo = aplicarFiltros(new URLSearchParams({ Requerimiento: 'KPIs' }), filtros);
+  const cuerpo = conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'KPIs' }), filtros));
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
@@ -291,10 +329,10 @@ export async function cargarEstudiosEstructura(
   const clave = `${slug}|${limite}|${claveFiltros(filtros)}`;
   const guardado = cacheEstructura.get(clave);
   if (guardado) return guardado;
-  const cuerpo = aplicarFiltros(
+  const cuerpo = conUsuarioApp(aplicarFiltros(
     new URLSearchParams({ Requerimiento: 'EstudiosEstructura', slug, nombre, limite: String(limite) }),
     filtros,
-  );
+  ));
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
