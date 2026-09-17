@@ -6,13 +6,13 @@ import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {createExplosionLayout} from './explosion-layout';
 import {decodeModelResponse} from './model-download';
 import {PointerTap} from './pointer-tap';
-import {REGION_ES,cargarMapeo,cargarRegiones,type RegionStats} from './ipsepacs';
+import {REGION_ES,cargarMapeo,cargarRegiones,type FiltrosAtlas,type RegionStats} from './ipsepacs';
 import {translate,anatomyName,estructuraNombre} from './i18n';
 import {SYSTEMS,type Atlas,type SceneState} from './anatomy';
-interface Props {atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;onProgress:(n:number)=>void;onError:(s:string)=>void}
-export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:Props){
- const host=useRef<HTMLDivElement>(null),latest=useRef(state),select=useRef(onSelect);
- latest.current=state;select.current=onSelect;
+interface Props {atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;onProgress:(n:number)=>void;onError:(s:string)=>void;filtros?:FiltrosAtlas;onListo?:(recargar:(f:FiltrosAtlas)=>void)=>void}
+export default function AnatomyScene({atlas,state,onSelect,onProgress,onError,filtros,onListo}:Props){
+ const host=useRef<HTMLDivElement>(null),latest=useRef(state),select=useRef(onSelect),filtrosRef=useRef(filtros),listoRef=useRef(onListo);
+ latest.current=state;select.current=onSelect;filtrosRef.current=filtros;listoRef.current=onListo;
  useEffect(()=>{
   const el=host.current!;let disposed=false,frame=0,dirty=true,ready=false,lastView='',lastReset=-1,lastIsolate='',layoutKey='',amount=0;
   let lastState:SceneState|null=null;
@@ -90,7 +90,10 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
      Se carga en segundo plano y no bloquea la escena. */
   const statsRegion=new Map<string,RegionStats>();
   let regionDeParte:string[]=new Array(atlas.parts.length).fill('');
-  (async()=>{try{const [mapa,regiones]=await Promise.all([cargarMapeo(),cargarRegiones()]);regiones.forEach(r=>statsRegion.set(r.slug,r));regionDeParte=atlas.parts.map(p=>mapa.parteARegiones[p.id]?.[0]??'');}catch{/* sin datos: el visor sigue funcionando */}})();
+  /* Los filtros del panel se aplican tambien aqui: el 3D consulta la estadistica
+     con los mismos filtros, asi el tooltip muestra cifras coherentes con la lista. */
+  const recargarStats=async(f:FiltrosAtlas)=>{try{const regiones=await cargarRegiones(f);statsRegion.clear();regiones.forEach(r=>statsRegion.set(r.slug,r));}catch{/* se conserva lo que ya habia */}};
+  (async()=>{try{const [mapa,regiones]=await Promise.all([cargarMapeo(),cargarRegiones(filtrosRef.current)]);regiones.forEach(r=>statsRegion.set(r.slug,r));regionDeParte=atlas.parts.map(p=>mapa.parteARegiones[p.id]?.[0]??'');}catch{/* sin datos: el visor sigue funcionando */}listoRef.current?.(recargarStats);})();
   const down=(e:PointerEvent)=>{hover.hidden=true;tap.down(e.pointerId,e.clientX,e.clientY,e.pointerType==='touch'?12:5);};
   const move=(e:PointerEvent)=>{tap.move(e.pointerId,e.clientX,e.clientY);if(e.buttons||amount<.5||e.pointerType==='touch'){hover.hidden=true;return;}const rect=el.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,index=findTarget(x,y,12);hover.hidden=index<0;renderer.domElement.style.cursor=index<0?'grab':'pointer';if(index>=0){const pieza=atlas.parts[index],slug=regionDeParte[index]??'',st=slug?statsRegion.get(slug):undefined;hover.replaceChildren();const linea1=document.createElement('b');linea1.textContent=anatomyName(pieza.id,pieza.name);hover.appendChild(linea1);if(st&&st.n>0){const linea2=document.createElement('span');linea2.textContent=`${REGION_ES[slug]??slug} · ${st.n.toLocaleString('es-EC')} estudios`;hover.appendChild(linea2);const totSexo=(st.sexo?.Femenino??0)+(st.sexo?.Masculino??0)+(st.sexo?.Otro??0)+(st.sexo?.['Sin dato']??0);const pctF=totSexo>0?Math.round((st.sexo?.Femenino??0)*100/totSexo):0;const extra:string[]=[];if(st.edadPromedio!==null&&st.edadPromedio!==undefined)extra.push(`${st.edadPromedio} años prom.`);if(totSexo>0)extra.push(`${pctF}% femenino`);const mods=(st.modalidades??[]).slice(0,2).filter(m=>m.pct>=1).map(m=>`${m.modalidad} ${m.pct}%`);if(mods.length)extra.push(mods.join(' · '));if(!st.modalidades||!st.modalidades.length){extra.push(`${Math.round(st.eco/Math.max(1,st.n)*100)}% eco`);}if(extra.length){const linea3=document.createElement('span');linea3.textContent=extra.join(' · ');hover.appendChild(linea3);}}hover.style.left=`${Math.max(8,Math.min(x+14,el.clientWidth-260))}px`;hover.style.top=`${Math.max(8,Math.min(y+18,el.clientHeight-55))}px`;}};
   const cancel=(e:PointerEvent)=>tap.cancel(e.pointerId);
