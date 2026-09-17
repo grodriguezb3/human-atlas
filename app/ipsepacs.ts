@@ -161,8 +161,28 @@ export const COLOR_MODALIDAD: Record<string, string> = {
   'Informe estructurado': '#8a97ab',
 };
 
-const API = (import.meta as unknown as { env: Record<string, string> })
-  .env?.VITE_IPSEPACS_API ?? 'http://localhost:8081';
+/* URL del backend del PACS, en este orden:
+ *  1. Modo APP (?user_id=): la API que indica la propia app en ?api=. Es
+ *     imprescindible porque dentro del telefono "localhost" es el telefono, no el
+ *     servidor del PACS.
+ *  2. VITE_IPSEPACS_API (entorno del servidor).
+ *  3. localhost:8081 — desarrollo en el navegador del equipo, como siempre.
+ * Sin app ni entorno, el comportamiento es identico al de la web de siempre. */
+const API_APP = (() => {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    if (!/^[0-9]+$/.test(q.get('user_id') ?? '')) return '';
+    const v = (q.get('api') ?? '').trim().replace(/\/+$/, '');
+    return /^https?:\/\/[^\s]+$/i.test(v) ? v : '';
+  } catch {
+    return '';
+  }
+})();
+
+const API =
+  API_APP ||
+  (import.meta as unknown as { env: Record<string, string> }).env?.VITE_IPSEPACS_API ||
+  'http://localhost:8081';
 
 /* MODO APP: la app movil abre el atlas con ?user_id=NN. Dentro de su WebView no
  * hay cookie de sesion del PACS, asi que la identificacion viaja en cada
