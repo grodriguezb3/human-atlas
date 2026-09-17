@@ -179,10 +179,28 @@ const API_APP = (() => {
   }
 })();
 
+/* Si no hay variable de entorno, la API se deduce de donde vive el atlas:
+ *  - DESARROLLO (host local): el PACS escucha en el MISMO host, puerto 8081.
+ *  - PUBLICADO (dominio real, p. ej. /atlas/): la API es el mismo dominio.
+ * Asi la sesion del PACS (que va en cookie) SIEMPRE viaja a su propio host; con
+ * "localhost:8081" fijo la peticion salia sin sesion ("Sesion no valida"). */
+const API_DEDUCIDA = (() => {
+  try {
+    const h = window.location.hostname;
+    const esLocal =
+      h === 'localhost' || h === '127.0.0.1' || h === '' ||
+      /^192\.168\./.test(h) || /^10\./.test(h) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(h);
+    return esLocal ? `http://${h}:8081` : window.location.origin;
+  } catch {
+    return 'http://localhost:8081';
+  }
+})();
+
 const API =
   API_APP ||
   (import.meta as unknown as { env: Record<string, string> }).env?.VITE_IPSEPACS_API ||
-  'http://localhost:8081';
+  API_DEDUCIDA;
 
 /* MODO APP: la app movil abre el atlas con ?user_id=NN. Dentro de su WebView no
  * hay cookie de sesion del PACS, asi que la identificacion viaja en cada
