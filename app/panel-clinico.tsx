@@ -8,18 +8,21 @@ import {useEffect, useMemo, useState} from 'react';
 import {Activity, ChevronRight, Users} from 'lucide-react';
 import {
   COLOR_MODALIDAD,
+  EDAD_TOPE,
+  FILTROS_VACIOS,
   REGION_ES,
   REGION_SIN_MODELO,
   cargarEstudiosEstructura,
+  claveFiltros,
   edadTexto,
   fechaCorta,
-  nombrePaciente,
   numero,
   porcentaje,
   regionesDeEstructura,
   statsDeRegion,
   type DemografiaEdad,
   type DemografiaSexo,
+  type FiltrosAtlas,
   type RespuestaEstructura,
 } from './ipsepacs';
 
@@ -28,6 +31,8 @@ interface Props {
   conceptId?: string;
   partes: string[];
   onAbrirRegion?: (slug: string) => void;
+  /** Avisa al visor 3D para que vuelva a pintar con los filtros nuevos. */
+  onFiltros?: (f: FiltrosAtlas) => void;
 }
 
 /** Barra horizontal con etiqueta y valor. */
@@ -106,12 +111,140 @@ function ResumenEdad({edad}: {edad: DemografiaEdad}) {
   );
 }
 
-export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion}: Props) {
+/** Barra de filtros: sexo, rango de edad (dos puntos) y tipo de estudio.
+ *  Se aplica un instante despues de mover, para no consultar en cada pixel. */
+function BarraFiltros({
+  filtros,
+  modalidades,
+  onCambio,
+  ocupado,
+}: {
+  filtros: FiltrosAtlas;
+  modalidades: string[];
+  onCambio: (f: FiltrosAtlas) => void;
+  ocupado: boolean;
+}) {
+  const [local, setLocal] = useState<FiltrosAtlas>(filtros);
+  const claveLocal = claveFiltros(local);
+
+  /* Si los filtros cambian desde afuera (otra region), se reflejan aqui. */
+  useEffect(() => {
+    setLocal(filtros);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveFiltros(filtros)]);
+
+  /* Se avisa al panel poco despues de mover: evita una consulta por pixel. */
+  useEffect(() => {
+    if (claveLocal === claveFiltros(filtros)) return;
+    const t = window.setTimeout(() => onCambio(local), 350);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveLocal]);
+
+  const pct = (v: number) => (v * 100) / EDAD_TOPE;
+  const activo = claveLocal !== claveFiltros(FILTROS_VACIOS);
+
+  return (
+    <div className="ipse-filtros">
+      <div className="ipse-filtros-linea">
+        <span className="ipse-filtros-titulo">Filtrar</span>
+        <span className="ipse-segmento" role="group" aria-label="Sexo">
+          {([['', 'Todos'], ['F', 'Femenino'], ['M', 'Masculino']] as const).map(([v, t]) => (
+            <button
+              key={v || 'todos'}
+              type="button"
+              className={local.sexo === v ? 'on' : ''}
+              onClick={() => setLocal({...local, sexo: v})}
+            >
+              {t}
+            </button>
+          ))}
+        </span>
+        {activo && (
+          <button
+            type="button"
+            className="ipse-filtros-limpiar"
+            onClick={() => {
+              setLocal(FILTROS_VACIOS);
+              onCambio(FILTROS_VACIOS);
+            }}
+          >
+            Quitar filtros
+          </button>
+        )}
+        {ocupado && (
+          <span className="ipse-filtros-ocupado">
+            <Activity size={12} /> filtrando…
+          </span>
+        )}
+      </div>
+
+      <div className="ipse-filtros-linea">
+        <span className="ipse-filtros-etiqueta">Edad</span>
+        <span className="ipse-edad-valor">
+          <b>{local.edadMin}</b> a <b>{local.edadMax}</b> años
+        </span>
+        <span className="ipse-edad-rango">
+          <span className="ipse-edad-pista" />
+          <span
+            className="ipse-edad-relleno"
+            style={{left: `${pct(local.edadMin)}%`, right: `${100 - pct(local.edadMax)}%`}}
+          />
+          <input
+            type="range"
+            min={0}
+            max={EDAD_TOPE}
+            value={local.edadMin}
+            aria-label="Edad mínima"
+            onChange={e => setLocal({...local, edadMin: Math.min(Number(e.target.value), local.edadMax)})}
+          />
+          <input
+            type="range"
+            min={0}
+            max={EDAD_TOPE}
+            value={local.edadMax}
+            aria-label="Edad máxima"
+            onChange={e => setLocal({...local, edadMax: Math.max(Number(e.target.value), local.edadMin)})}
+          />
+        </span>
+      </div>
+
+      {modalidades.length > 1 && (
+        <div className="ipse-filtros-linea">
+          <span className="ipse-filtros-etiqueta">Tipo</span>
+          <span className="ipse-segmento" role="group" aria-label="Tipo de estudio">
+            <button
+              type="button"
+              className={local.modalidad === '' ? 'on' : ''}
+              onClick={() => setLocal({...local, modalidad: ''})}
+            >
+              Todas
+            </button>
+            {modalidades.map(m => (
+              <button
+                key={m}
+                type="button"
+                className={local.modalidad === m ? 'on' : ''}
+                onClick={() => setLocal({...local, modalidad: m})}
+              >
+                {m}
+              </button>
+            ))}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, onFiltros}: Props) {
   const [regiones, setRegiones] = useState<string[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [datos, setDatos] = useState<RespuestaEstructura | null>(null);
   const [regionElegida, setRegionElegida] = useState<string>('');
+  const [filtros, setFiltros] = useState<FiltrosAtlas>(FILTROS_VACIOS);
+  const [filtrando, setFiltrando] = useState(false);
 
   /* 1) A que region de IPSE PACS pertenece esta estructura */
   useEffect(() => {
@@ -137,28 +270,32 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion}:
     };
   }, [conceptId, partes.join(',')]);
 
-  /* 2) Estudios reales de la region elegida */
+  /* 2) Estudios reales de la region elegida, con los filtros activos */
   useEffect(() => {
     if (!regionElegida) return;
     let vivo = true;
     setCargando(true);
-    cargarEstudiosEstructura(regionElegida, nombre)
+    setFiltrando(true);
+    cargarEstudiosEstructura(regionElegida, nombre, filtros)
       .then(d => {
         if (vivo) {
           setDatos(d);
           setCargando(false);
+          setFiltrando(false);
         }
       })
       .catch(e => {
         if (vivo) {
           setError(e.message);
           setCargando(false);
+          setFiltrando(false);
         }
       });
     return () => {
       vivo = false;
     };
-  }, [regionElegida, nombre]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionElegida, nombre, claveFiltros(filtros)]);
 
   const stat = regionElegida ? statsDeRegion(regionElegida) : undefined;
   const sinModelo = regiones.some(r => REGION_SIN_MODELO.includes(r));
@@ -207,6 +344,17 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion}:
 
       {regionElegida && (
         <>
+          {/* --- filtros: sexo, rango de edad y tipo de estudio --- */}
+          <BarraFiltros
+            filtros={filtros}
+            modalidades={modalidades.map(m => m.modalidad)}
+            ocupado={filtrando}
+            onCambio={f => {
+              setFiltros(f);
+              onFiltros?.(f);
+            }}
+          />
+
           {/* --- titular: volumen, edad y sexo de un vistazo --- */}
           <div className="ipse-stat">
             <strong>{numero(total)}</strong>
@@ -315,7 +463,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion}:
               <ul className="ipse-lista">
                 {datos.estudios.slice(0, 8).map((e, i) => (
                   <li key={`${e.id_study}-${i}`}>
-                    <b>{nombrePaciente(e.paciente)}</b>
+                    {/* Atlas anonimo: sin nombre ni cedula; fecha, edad, sexo y tipo */}
                     <span className="ipse-paciente-datos">
                       <i className={e.sexo === 'Femenino' ? 'es-f' : e.sexo === 'Masculino' ? 'es-m' : ''}>
                         {e.sexo ?? 'Sin dato'}
@@ -323,7 +471,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion}:
                       <i>{edadTexto(e.edad)}</i>
                       <i>{e.modalidad_nombre ?? e.modalidad}</i>
                     </span>
-                    <span>{e.cedula} · {fechaCorta(e.fecha)}</span>
+                    <span className="ipse-estudio-fecha">{fechaCorta(e.fecha)}</span>
                     <i>{e.descripcion}</i>
                   </li>
                 ))}

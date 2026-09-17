@@ -57,13 +57,40 @@ export interface EstudioClinico {
   modalidad: string | null;
   modalidad_nombre?: string | null;
   descripcion: string | null;
-  paciente: string | null;
-  cedula: string | null;
   sexo?: string | null;
   edad?: number | null;
   fecha: string | null;
   study_uid: string | null;
   id_study: number | string | null;
+}
+
+/** Filtros del atlas. El atlas es ANONIMO por diseno: nunca se piden ni se
+ *  muestran datos del paciente (nombre, cedula); solo fecha, edad, sexo,
+ *  modalidad y descripcion. */
+export interface FiltrosAtlas {
+  sexo: '' | 'F' | 'M';
+  edadMin: number;
+  edadMax: number;
+  modalidad: string;
+}
+
+export const EDAD_TOPE = 120;
+
+export const FILTROS_VACIOS: FiltrosAtlas = { sexo: '', edadMin: 0, edadMax: EDAD_TOPE, modalidad: '' };
+
+/** Solo se envian los filtros que el usuario realmente acoto. */
+function aplicarFiltros(cuerpo: URLSearchParams, f: FiltrosAtlas): URLSearchParams {
+  if (f.sexo) cuerpo.set('sexo', f.sexo);
+  if (f.edadMin > 0) cuerpo.set('edad_min', String(f.edadMin));
+  if (f.edadMax < EDAD_TOPE) cuerpo.set('edad_max', String(f.edadMax));
+  if (f.modalidad) cuerpo.set('modalidad', f.modalidad);
+  return cuerpo;
+}
+
+/** Clave de cache: los filtros forman parte de ella, si no la pantalla no
+ *  refrescaria al mover el rango de edad. */
+export function claveFiltros(f: FiltrosAtlas): string {
+  return `${f.sexo}|${f.edadMin}-${f.edadMax}|${f.modalidad}`;
 }
 
 export interface RespuestaEstructura {
@@ -154,8 +181,8 @@ export function conRutaBase<T extends { chunks?: { url?: string; gzip?: string }
 }
 
 let mapeoCache: Mapeo | null = null;
-let regionesCache: RegionStats[] | null = null;
-const statsPorRegion = new Map<string, RegionStats>();
+const cacheRegiones = new Map<string, RegionStats[]>();
+let statsPorRegion = new Map<string, RegionStats>();
 const cacheEstructura = new Map<string, RespuestaEstructura>();
 
 export async function cargarMapeo(): Promise<Mapeo> {
@@ -209,54 +236,65 @@ function normalizarDemografia<T extends {sexo?: DemografiaSexo; edad?: Demografi
   return x;
 }
 
-/** Estadistica por region (una sola llamada, se cachea). */
-export async function cargarRegiones(): Promise<RegionStats[]> {
-  if (regionesCache) return regionesCache;
+/** Estadistica por region, con los filtros activos (se cachea por filtro). */
+export async function cargarRegiones(filtros: FiltrosAtlas = FILTROS_VACIOS): Promise<RegionStats[]> {
+  const clave = claveFiltros(filtros);
+  const guardado = cacheRegiones.get(clave);
+  if (guardado) return guardado;
+  const cuerpo = aplicarFiltros(new URLSearchParams({ Requerimiento: 'Regiones' }), filtros);
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'Requerimiento=Regiones',
+    body: cuerpo.toString(),
   });
   const j = (await r.json()) as Crudo<RegionStats[]>;
   if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudo obtener la estadística.');
-  regionesCache = j.data.map(x => normalizarDemografia({
+  const datos = j.data.map(x => normalizarDemografia({
     ...x,
     n: num(x.n),
     eco: num(x.eco),
     rx: num(x.rx),
     modalidades: (x.modalidades ?? []).map(m => ({ modalidad: m.modalidad, n: num(m.n), pct: num(m.pct) })),
   }));
-  regionesCache.forEach(x => statsPorRegion.set(x.slug, x));
-  return regionesCache;
+  cacheRegiones.set(clave, datos);
+  /* El mapa de consulta se reemplaza completo: si se acumulara, una region que
+     no cumple el filtro seguiria mostrando las cifras del filtro anterior. */
+  statsPorRegion = new Map(datos.map(x => [x.slug, x]));
+  return datos;
 }
 
 export function statsDeRegion(slug: string): RegionStats | undefined {
   return statsPorRegion.get(slug);
 }
 
-export async function cargarKpis(): Promise<KpisInstitucion> {
+export async function cargarKpis(filtros: FiltrosAtlas = FILTROS_VACIOS): Promise<KpisInstitucion> {
+  const cuerpo = aplicarFiltros(new URLSearchParams({ Requerimiento: 'KPIs' }), filtros);
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'Requerimiento=KPIs',
+    body: cuerpo.toString(),
   });
   const j = (await r.json()) as Crudo<KpisInstitucion>;
   if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudieron obtener los indicadores.');
   return normalizarDemografia(j.data);
 }
 
-/** Estudios reales de la estructura seleccionada (se cachea por region). */
+/** Estudios reales de la estructura seleccionada (se cachea por region + filtro). */
 export async function cargarEstudiosEstructura(
   slug: string,
   nombre: string,
+  filtros: FiltrosAtlas = FILTROS_VACIOS,
   limite = 12,
 ): Promise<RespuestaEstructura> {
-  const clave = `${slug}|${limite}`;
+  const clave = `${slug}|${limite}|${claveFiltros(filtros)}`;
   const guardado = cacheEstructura.get(clave);
   if (guardado) return guardado;
-  const cuerpo = new URLSearchParams({ Requerimiento: 'EstudiosEstructura', slug, nombre, limite: String(limite) });
+  const cuerpo = aplicarFiltros(
+    new URLSearchParams({ Requerimiento: 'EstudiosEstructura', slug, nombre, limite: String(limite) }),
+    filtros,
+  );
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
@@ -271,10 +309,7 @@ export async function cargarEstudiosEstructura(
 
 /* ------------------------------ formato ------------------------------ */
 
-export function nombrePaciente(p: string | null): string {
-  if (!p) return 'Sin nombre';
-  return p.replace(/\^/g, ' ').replace(/\s+/g, ' ').trim();
-}
+/* El atlas es anonimo: no existe (ni se muestra) el nombre del paciente. */
 
 export function fechaCorta(f: string | null): string {
   if (!f) return '';
