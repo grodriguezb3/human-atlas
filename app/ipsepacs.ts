@@ -307,6 +307,35 @@ export async function cargarEstudiosEstructura(
   return j.data;
 }
 
+/**
+ * Abre un estudio en el visor SIN datos del paciente (atlas anonimo).
+ *
+ * El enlace lo emite el backend con:
+ *   - un solo uso por navegador  -> solo ese navegador puede abrirlo
+ *   - modo anonimo               -> el visor oculta nombre, cedula, sexo y fecha
+ *                                   de nacimiento, y no ofrece el boton para
+ *                                   mostrarlos (estudio, no ficha clinica)
+ */
+export async function generarLinkAnonimo(studyUid: string): Promise<string> {
+  const cuerpo = new URLSearchParams({
+    Requerimiento: 'GenerarLink',
+    study_uid: studyUid,
+    origen: 'admin',      // el atlas forma parte del PACS interno
+    tipo: 'visualizar',   // vínculo de navegador (un solo uso)
+    anonimo: '1',         // sin datos del paciente
+    horas: '24',
+  });
+  const r = await fetch(`${API}/Ajax/Aj_CompartirLinks.php`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: cuerpo.toString(),
+  });
+  const j = (await r.json()) as {success?: boolean; url?: string; message?: string};
+  if (!j.success || !j.url) throw new Error(j.message ?? 'No se pudo abrir el estudio.');
+  return j.url;
+}
+
 /* ------------------------------ formato ------------------------------ */
 
 /* El atlas es anonimo: no existe (ni se muestra) el nombre del paciente. */

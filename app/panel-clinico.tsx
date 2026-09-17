@@ -14,6 +14,7 @@ import {
   REGION_SIN_MODELO,
   cargarEstudiosEstructura,
   claveFiltros,
+  generarLinkAnonimo,
   edadTexto,
   fechaCorta,
   numero,
@@ -245,6 +246,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
   const [regionElegida, setRegionElegida] = useState<string>('');
   const [filtros, setFiltros] = useState<FiltrosAtlas>(FILTROS_VACIOS);
   const [filtrando, setFiltrando] = useState(false);
+  const [abriendo, setAbriendo] = useState<string>('');
 
   /* 1) A que region de IPSE PACS pertenece esta estructura */
   useEffect(() => {
@@ -296,6 +298,20 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [regionElegida, nombre, claveFiltros(filtros)]);
+
+  /* Abre el estudio en el visor con enlace anonimo (un solo uso, sin datos). */
+  const abrirImagenes = (studyUid: string) => {
+    setAbriendo(studyUid);
+    generarLinkAnonimo(studyUid)
+      .then(url => {
+        window.open(url, '_blank', 'noopener');
+        setAbriendo('');
+      })
+      .catch(e => {
+        setAbriendo('');
+        setError(e.message ?? 'No se pudo abrir el estudio.');
+      });
+  };
 
   const stat = regionElegida ? statsDeRegion(regionElegida) : undefined;
   const sinModelo = regiones.some(r => REGION_SIN_MODELO.includes(r));
@@ -473,6 +489,16 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                     </span>
                     <span className="ipse-estudio-fecha">{fechaCorta(e.fecha)}</span>
                     <i>{e.descripcion}</i>
+                    {e.study_uid && (
+                      <button
+                        type="button"
+                        className="ipse-ver-imagenes"
+                        disabled={abriendo === e.study_uid}
+                        onClick={() => abrirImagenes(e.study_uid as string)}
+                      >
+                        {abriendo === e.study_uid ? 'Abriendo…' : 'Ver imágenes'}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
