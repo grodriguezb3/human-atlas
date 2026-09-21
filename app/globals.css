@@ -148,6 +148,20 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 
 @media(max-height:600px) and (orientation:landscape){body:has(.detail-sheet) .bottom-dock{left:12px;right:324px;width:auto;transform:none;max-width:none;margin:0}}
 
+/* ---- Panel clinico: busqueda por descripcion, contador y "mostrar mas" -- */
+.ipse-buscar{flex:1;min-width:150px;font-size:12.5px;padding:6px 10px;border:1px solid #cbdbf5;
+  border-radius:8px;background:#fff;color:#22304a;outline:none;transition:.16s}
+.ipse-buscar::placeholder{color:#98a6bb}
+.ipse-buscar:focus{border-color:#0046ad;box-shadow:0 0 0 3px #0046ad1f}
+.ipse-buscar::-webkit-search-cancel-button{cursor:pointer}
+.ipse-contador{margin-left:auto;font-size:10.5px;font-style:normal;font-weight:500;
+  letter-spacing:.02em;color:#8a97ab}
+.ipse-sub{display:flex;align-items:center;gap:6px}
+.ipse-mas{align-self:flex-start;margin-top:2px;font-size:11.5px;font-weight:600;color:#0046ad;
+  background:#eef4ff;border:1px solid #cbdbf5;border-radius:8px;padding:6px 12px;cursor:pointer;transition:.16s}
+.ipse-mas:hover{background:#0046ad;border-color:#0046ad;color:#fff}
+.ipse-mas:disabled{opacity:.6;cursor:default}
+
 /* ---- Panel clinico: barras de modalidad, sexo, edad y anios ---------- */
 .ipse-bloque{display:flex;flex-direction:column;gap:8px}
 .ipse-bloque .ipse-sub{display:flex;align-items:center;gap:5px}

@@ -74,11 +74,15 @@ export interface FiltrosAtlas {
   edadMin: number;
   edadMax: number;
   modalidad: string;
+  /** Texto libre para buscar dentro de la descripción del estudio: dentro de una
+   *  parte del cuerpo (p. ej. EXTREMIDADES SUPERIORES) se escribe "mano" y se ven
+   *  solo esos estudios, incluidas las descripciones compuestas. */
+  buscar: string;
 }
 
 export const EDAD_TOPE = 120;
 
-export const FILTROS_VACIOS: FiltrosAtlas = { sexo: '', edadMin: 0, edadMax: EDAD_TOPE, modalidad: '' };
+export const FILTROS_VACIOS: FiltrosAtlas = { sexo: '', edadMin: 0, edadMax: EDAD_TOPE, modalidad: '', buscar: '' };
 
 /** Solo se envian los filtros que el usuario realmente acoto. */
 function aplicarFiltros(cuerpo: URLSearchParams, f: FiltrosAtlas): URLSearchParams {
@@ -86,13 +90,14 @@ function aplicarFiltros(cuerpo: URLSearchParams, f: FiltrosAtlas): URLSearchPara
   if (f.edadMin > 0) cuerpo.set('edad_min', String(f.edadMin));
   if (f.edadMax < EDAD_TOPE) cuerpo.set('edad_max', String(f.edadMax));
   if (f.modalidad) cuerpo.set('modalidad', f.modalidad);
+  if (f.buscar.trim()) cuerpo.set('buscar', f.buscar.trim());
   return cuerpo;
 }
 
 /** Clave de cache: los filtros forman parte de ella, si no la pantalla no
  *  refrescaria al mover el rango de edad. */
 export function claveFiltros(f: FiltrosAtlas): string {
-  return `${f.sexo}|${f.edadMin}-${f.edadMax}|${f.modalidad}`;
+  return `${f.sexo}|${f.edadMin}-${f.edadMax}|${f.modalidad}|${f.buscar.trim().toLowerCase()}`;
 }
 
 export interface RespuestaEstructura {
@@ -107,6 +112,11 @@ export interface RespuestaEstructura {
   edad: DemografiaEdad;
   anios: ItemAnio[];
   estudios: EstudioClinico[];
+  /** Cuántos van mostrados y si quedan más por cargar. */
+  mostrados: number;
+  hay_mas: boolean;
+  /** Texto que se está buscando (lo devuelve el backend tal cual). */
+  buscar: string;
 }
 
 export interface KpisInstitucion {
@@ -362,13 +372,17 @@ export async function cargarEstudiosEstructura(
   slug: string,
   nombre: string,
   filtros: FiltrosAtlas = FILTROS_VACIOS,
-  limite = 12,
+  limite = 10,
+  offset = 0,
 ): Promise<RespuestaEstructura> {
-  const clave = `${slug}|${limite}|${claveFiltros(filtros)}`;
+  const clave = `${slug}|${limite}|${offset}|${claveFiltros(filtros)}`;
   const guardado = cacheEstructura.get(clave);
   if (guardado) return guardado;
   const cuerpo = conUsuarioApp(aplicarFiltros(
-    new URLSearchParams({ Requerimiento: 'EstudiosEstructura', slug, nombre, limite: String(limite) }),
+    new URLSearchParams({
+      Requerimiento: 'EstudiosEstructura', slug, nombre,
+      limite: String(limite), offset: String(offset),
+    }),
     filtros,
   ));
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {

@@ -235,6 +235,30 @@ function BarraFiltros({
           </span>
         </div>
       )}
+
+      {/* Búsqueda por descripción: dentro de la parte del cuerpo se puede
+          precisar el estudio (p. ej. "mano", "rodilla"), incluidas las
+          descripciones que combinan varias exploraciones. */}
+      <div className="ipse-filtros-linea">
+        <span className="ipse-filtros-etiqueta">Buscar</span>
+        <input
+          type="search"
+          className="ipse-buscar"
+          placeholder="Ej.: mano, hombro, rodilla, tiroides…"
+          aria-label="Buscar por descripción del estudio"
+          value={local.buscar}
+          onChange={e => setLocal({...local, buscar: e.target.value})}
+        />
+        {local.buscar.trim() !== '' && (
+          <button
+            type="button"
+            className="ipse-filtros-limpiar"
+            onClick={() => setLocal({...local, buscar: ''})}
+          >
+            Quitar búsqueda
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -248,6 +272,8 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
   const [filtros, setFiltros] = useState<FiltrosAtlas>(FILTROS_VACIOS);
   const [filtrando, setFiltrando] = useState(false);
   const [abriendo, setAbriendo] = useState<string>('');
+  /** Se usa mientras se trae el siguiente bloque de la lista. */
+  const [cargandoMas, setCargandoMas] = useState(false);
 
   /* 1) A que region de IPSE PACS pertenece esta estructura */
   useEffect(() => {
@@ -273,13 +299,27 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
     };
   }, [conceptId, partes.join(',')]);
 
+  /** Trae el siguiente bloque de estudios y lo agrega a los que ya se ven. */
+  const mostrarMas = async () => {
+    if (!datos || cargandoMas) return;
+    setCargandoMas(true);
+    try {
+      const d = await cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, datos.mostrados);
+      setDatos(prev => (prev ? {...d, estudios: [...prev.estudios, ...d.estudios]} : d));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCargandoMas(false);
+    }
+  };
+
   /* 2) Estudios reales de la region elegida, con los filtros activos */
   useEffect(() => {
     if (!regionElegida) return;
     let vivo = true;
     setCargando(true);
     setFiltrando(true);
-    cargarEstudiosEstructura(regionElegida, nombre, filtros)
+    cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, 0)
       .then(d => {
         if (vivo) {
           setDatos(d);
@@ -479,9 +519,14 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
 
           {!cargando && datos && datos.estudios.length > 0 && (
             <>
-              <h4 className="ipse-sub">Estudios recientes</h4>
+              <h4 className="ipse-sub">
+                Estudios {datos.buscar ? `con "${datos.buscar}"` : 'recientes'}
+                <em className="ipse-contador">
+                  {numero(datos.mostrados)} de {numero(datos.total)}
+                </em>
+              </h4>
               <ul className="ipse-lista">
-                {datos.estudios.slice(0, 8).map((e, i) => (
+                {datos.estudios.map((e, i) => (
                   <li key={`${e.id_study}-${i}`}>
                     {/* Atlas anonimo: sin nombre ni cedula; fecha, edad, sexo y tipo */}
                     <span className="ipse-paciente-datos">
@@ -506,8 +551,15 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                   </li>
                 ))}
               </ul>
-              {datos.total > 8 && (
-                <p className="ipse-note">y {numero(datos.total - 8)} estudios más</p>
+              {datos.hay_mas && (
+                <button
+                  type="button"
+                  className="ipse-mas"
+                  disabled={cargandoMas}
+                  onClick={() => void mostrarMas()}
+                >
+                  {cargandoMas ? 'Cargando…' : 'Mostrar 10 más'}
+                </button>
               )}
               {onAbrirRegion && (
                 <button type="button" className="ipse-abrir" onClick={() => onAbrirRegion(regionElegida)}>
