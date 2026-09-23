@@ -406,13 +406,18 @@ export async function cargarEstudiosEstructura(
   const clave = `${slug}|${limite}|${offset}|${claveFiltros(filtros)}|${claveFechas(fechas)}`;
   const guardado = cacheEstructura.get(clave);
   if (guardado) return guardado;
-  const cuerpo = conFechas(conUsuarioApp(aplicarFiltros(
-    new URLSearchParams({
-      Requerimiento: 'EstudiosEstructura', slug, nombre,
-      limite: String(limite), offset: String(offset),
-    }),
-    filtros,
-  ));
+  const cuerpo = conFechas(
+    conUsuarioApp(
+      aplicarFiltros(
+        new URLSearchParams({
+          Requerimiento: 'EstudiosEstructura', slug, nombre,
+          limite: String(limite), offset: String(offset),
+        }),
+        filtros,
+      ),
+    ),
+    fechas,
+  );
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
