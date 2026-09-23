@@ -409,6 +409,9 @@ export type EstudioDiagnostico = {
   extracto: string;
   /** true cuando el diagnostico figura en el cierre del informe (impresion). */
   especifico: boolean;
+  /** Identificadores para abrir el estudio en el visor (enlace anonimo). */
+  study_uid: string;
+  orthanc_uid: string;
 };
 
 export type RespuestaDiagnostico = {

@@ -5,7 +5,7 @@
  * Todo el texto va en espanol: son datos de la institucion.
  */
 import {useEffect, useMemo, useState} from 'react';
-import {Activity, ChevronRight, Search, Users} from 'lucide-react';
+import {Activity, ChevronRight, Eye, Search, Users} from 'lucide-react';
 import {
   COLOR_MODALIDAD,
   EDAD_TOPE,
@@ -520,7 +520,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
           {error && <p className="ipse-note ipse-error">{error}</p>}
 
           {/* --- buscar un diagnostico en el texto de los informes --- */}
-          <BuscarDiagnostico filtros={filtros} />
+          <BuscarDiagnostico filtros={filtros} onAbrir={abrirImagenes} />
 
           {!cargando && datos && datos.estudios.length > 0 && (
             <>
@@ -605,7 +605,7 @@ function resaltar(texto: string, termino: string) {
   );
 }
 
-function BuscarDiagnostico({filtros}: {filtros: FiltrosAtlas}) {
+function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: (u: string, o: string) => void}) {
   const [termino, setTermino] = useState('');
   const [datos, setDatos] = useState<RespuestaDiagnostico | null>(null);
   const [cargando, setCargando] = useState(false);
@@ -722,7 +722,17 @@ function BuscarDiagnostico({filtros}: {filtros: FiltrosAtlas}) {
                     {edadTexto(e.edad)} · {e.sexo === 'M' ? 'Masculino' : e.sexo === 'F' ? 'Femenino' : '—'} · {e.modalidad}
                   </span>
                 </div>
-                <p className="ipse-diag-desc">{e.descripcion}</p>
+                <div className="ipse-diag-desc-fila">
+                  <p className="ipse-diag-desc">{e.descripcion}</p>
+                  <button
+                    type="button"
+                    className="ipse-diag-ver"
+                    onClick={() => onAbrir(e.study_uid, e.orthanc_uid)}
+                    title="Abrir las imágenes de este estudio"
+                  >
+                    <Eye size={12} /> Ver imágenes
+                  </button>
+                </div>
                 {e.extracto !== '' && (
                   <p className="ipse-diag-extracto">…{resaltar(e.extracto, termino)}…</p>
                 )}
