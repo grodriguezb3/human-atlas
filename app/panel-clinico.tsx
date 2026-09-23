@@ -539,7 +539,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                la derecha. Los dos respetan los filtros de sexo, edad y tipo. --- */}
           <div className="ipse-dos-columnas">
           <div className="ipse-columna">
-          <BuscarDiagnostico filtros={filtros} desde={desde} hasta={hasta} onAbrir={abrirImagenes} />
+          <BuscarDiagnostico filtros={filtros} slug={regionElegida} desde={desde} hasta={hasta} onAbrir={abrirImagenes} />
           </div>
           <div className="ipse-columna">
           {!cargando && datos && datos.estudios.length > 0 && (
@@ -725,7 +725,7 @@ function FiltroFechas({
   );
 }
 
-function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAtlas; desde: string; hasta: string; onAbrir: (u: string, o: string) => void}) {
+function BuscarDiagnostico({filtros, slug, desde, hasta, onAbrir}: {filtros: FiltrosAtlas; slug: string; desde: string; hasta: string; onAbrir: (u: string, o: string) => void}) {
   /** Los diagnosticos que se estan buscando a la vez (se exigen todos). */
   const [terminos, setTerminos] = useState<string[]>([]);
   /** Lo que se esta escribiendo, todavia sin agregar. */
@@ -763,7 +763,7 @@ function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAt
     setCargando(true);
     // Se espera a que deje de escribir: la busqueda es sobre mucho texto.
     const id = setTimeout(() => {
-      buscarDiagnostico(t, filtros, {desde, hasta})
+      buscarDiagnostico(t, filtros, {desde, hasta, slug})
         .then(r => {
           if (!vivo) return;
           setDatos(r);
@@ -783,7 +783,7 @@ function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAt
       clearTimeout(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [terminos, desde, hasta, clave]);
+  }, [terminos, slug, desde, hasta, clave]);
 
   const estudios = datos?.estudios ?? [];
   const anios = datos?.anios ?? [];

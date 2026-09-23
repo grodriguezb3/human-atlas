@@ -19,11 +19,16 @@ export default function Home(){
  const {t,locale,setLocale}=useT();
  const detailTitle=useRef<HTMLHeadingElement>(null);
  const [ampliado,setAmpliado]=useState(false),[atlas,setAtlas]=useState<Atlas|null>(null),[state,setState]=useState(initial),[progress,setProgress]=useState(0),[error,setError]=useState(''),[panel,setPanel]=useState<'layers'|'search'|null>(null),[details,setDetails]=useState(false),[about,setAbout]=useState(false),[query,setQuery]=useState(''),[chosen,setChosen]=useState<Concept|null>(null),[filtros,setFiltros]=useState<FiltrosAtlas>(FILTROS_VACIOS),recargaRef=useRef<((f:FiltrosAtlas)=>void)|null>(null);
+ const selectedPartsCount=state.selected.length;
  useEffect(()=>{const abort=new AbortController();setProgress(0);setError('');setAtlas(null);setChosen(null);setDetails(false);setState({...initial,visible:DEFAULT_VISIBLE});fetch(`${RUTA_BASE}models/atlas.json`,{signal:abort.signal}).then(r=>{if(!r.ok)throw new Error(t('errors.catalogueLoadFailed'));return r.json();}).then(data=>setAtlas(conRutaBase(data as Atlas))).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>abort.abort();},[locale]);
  // Al ampliar o reducir la ficha cambia el ancho de la escena: se avisa
  // para que el muñeco se vuelva a encuadrar en el espacio que queda.
  useEffect(()=>{const id=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));return()=>cancelAnimationFrame(id);},[ampliado]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='/'&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement)){e.preventDefault();setPanel('search');setDetails(false);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
+ // Al seleccionar una estructura la ficha sale AMPLIADA por defecto: hay mucha
+ // informacion (estadistica, filtros, diagnostico y estudios) y en la columna
+ // estrecha no se lee bien. Se puede reducir con el boton de siempre.
+ useEffect(()=>{if(selectedPartsCount>0)setAmpliado(true);},[selectedPartsCount]);
  const parts=useMemo(()=>new Map(atlas?.parts.map(p=>[p.id,p])),[atlas]);
  const counts=useMemo(()=>Object.fromEntries(SYSTEMS.map(s=>[s.id,atlas?.parts.filter(p=>p.system===s.id).length??0])),[atlas]);
  const activeSystems=SYSTEMS.filter(s=>counts[s.id]>0);

@@ -489,12 +489,13 @@ export type RespuestaDiagnostico = {
 export async function buscarDiagnostico(
   termino: string,
   filtros: FiltrosAtlas = FILTROS_VACIOS,
-  opciones: {desde?: string; hasta?: string; pagina?: number} = {},
+  opciones: {desde?: string; hasta?: string; pagina?: number; slug?: string} = {},
 ): Promise<RespuestaDiagnostico> {
   const cuerpo = conUsuarioApp(aplicarFiltros(
     new URLSearchParams({
       Requerimiento: 'BuscarDiagnostico',
       termino,
+      slug: opciones.slug ?? '',
       desde: opciones.desde ?? '',
       hasta: opciones.hasta ?? '',
       pagina: String(opciones.pagina ?? 1),
