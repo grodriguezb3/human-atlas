@@ -82,6 +82,21 @@ export interface FiltrosAtlas {
 
 export const EDAD_TOPE = 120;
 
+/** Rango de fechas GENERAL del panel (aplica a estadisticas y listados). */
+export type FechasAtlas = {desde?: string; hasta?: string};
+
+/** Las fechas van en el cuerpo del POST, como los demas filtros. */
+function conFechas(cuerpo: URLSearchParams, f: FechasAtlas): URLSearchParams {
+  if (f.desde) cuerpo.set('desde', f.desde);
+  if (f.hasta) cuerpo.set('hasta', f.hasta);
+  return cuerpo;
+}
+
+/** Sufijo para las claves de cache: si cambian las fechas, cambia el resultado. */
+function claveFechas(f: FechasAtlas): string {
+  return `${f.desde ?? ''}~${f.hasta ?? ''}`;
+}
+
 export const FILTROS_VACIOS: FiltrosAtlas = { sexo: '', edadMin: 0, edadMax: EDAD_TOPE, modalidad: '', buscar: '' };
 
 /** Solo se envian los filtros que el usuario realmente acoto. */
@@ -323,11 +338,17 @@ function normalizarDemografia<T extends {sexo?: DemografiaSexo; edad?: Demografi
 }
 
 /** Estadistica por region, con los filtros activos (se cachea por filtro). */
-export async function cargarRegiones(filtros: FiltrosAtlas = FILTROS_VACIOS): Promise<RegionStats[]> {
-  const clave = claveFiltros(filtros);
+export async function cargarRegiones(
+  filtros: FiltrosAtlas = FILTROS_VACIOS,
+  fechas: FechasAtlas = {},
+): Promise<RegionStats[]> {
+  const clave = `${claveFiltros(filtros)}|${claveFechas(fechas)}`;
   const guardado = cacheRegiones.get(clave);
   if (guardado) return guardado;
-  const cuerpo = conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'Regiones' }), filtros));
+  const cuerpo = conFechas(
+    conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'Regiones' }), filtros)),
+    fechas,
+  );
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
@@ -354,8 +375,14 @@ export function statsDeRegion(slug: string): RegionStats | undefined {
   return statsPorRegion.get(slug);
 }
 
-export async function cargarKpis(filtros: FiltrosAtlas = FILTROS_VACIOS): Promise<KpisInstitucion> {
-  const cuerpo = conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'KPIs' }), filtros));
+export async function cargarKpis(
+  filtros: FiltrosAtlas = FILTROS_VACIOS,
+  fechas: FechasAtlas = {},
+): Promise<KpisInstitucion> {
+  const cuerpo = conFechas(
+    conUsuarioApp(aplicarFiltros(new URLSearchParams({ Requerimiento: 'KPIs' }), filtros)),
+    fechas,
+  );
   const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
     method: 'POST',
     credentials: 'include',
@@ -374,11 +401,12 @@ export async function cargarEstudiosEstructura(
   filtros: FiltrosAtlas = FILTROS_VACIOS,
   limite = 10,
   offset = 0,
+  fechas: FechasAtlas = {},
 ): Promise<RespuestaEstructura> {
-  const clave = `${slug}|${limite}|${offset}|${claveFiltros(filtros)}`;
+  const clave = `${slug}|${limite}|${offset}|${claveFiltros(filtros)}|${claveFechas(fechas)}`;
   const guardado = cacheEstructura.get(clave);
   if (guardado) return guardado;
-  const cuerpo = conUsuarioApp(aplicarFiltros(
+  const cuerpo = conFechas(conUsuarioApp(aplicarFiltros(
     new URLSearchParams({
       Requerimiento: 'EstudiosEstructura', slug, nombre,
       limite: String(limite), offset: String(offset),

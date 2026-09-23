@@ -14,6 +14,7 @@ import {
   REGION_SIN_MODELO,
   buscarDiagnostico,
   cargarEstudiosEstructura,
+  cargarRegiones,
   claveFiltros,
   generarLinkAnonimo,
   pedirVerImagenes,
@@ -26,6 +27,7 @@ import {
   type DemografiaEdad,
   type DemografiaSexo,
   type FiltrosAtlas,
+  type RegionStats,
   type RespuestaEstructura,
   type RespuestaDiagnostico,
 } from './ipsepacs';
@@ -278,6 +280,9 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
   const [filtrando, setFiltrando] = useState(false);
+  /** Estadisticas de la region calculadas CON el rango de fechas. Cuando no hay
+   *  fechas se usa el mapa general que llena la escena. */
+  const [statsConFechas, setStatsConFechas] = useState<RegionStats | undefined>(undefined);
   const [abriendo, setAbriendo] = useState<string>('');
   /** Se usa mientras se trae el siguiente bloque de la lista. */
   const [cargandoMas, setCargandoMas] = useState(false);
@@ -311,7 +316,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
     if (!datos || cargandoMas) return;
     setCargandoMas(true);
     try {
-      const d = await cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, datos.mostrados);
+      const d = await cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, datos.mostrados, {desde, hasta});
       setDatos(prev => (prev ? {...d, estudios: [...prev.estudios, ...d.estudios]} : d));
     } catch (e) {
       setError((e as Error).message);
@@ -320,13 +325,34 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
     }
   };
 
+  /* 1b) Las estadisticas (cuantos, edad, sexo, modalidad) tambien tienen que
+     respetar el rango de fechas: se piden aparte cuando hay uno puesto. */
+  useEffect(() => {
+    if (!regionElegida || (desde === '' && hasta === '')) {
+      setStatsConFechas(undefined);
+      return;
+    }
+    let vivo = true;
+    cargarRegiones(filtros, {desde, hasta})
+      .then(regs => {
+        if (vivo) setStatsConFechas(regs.find(r => r.slug === regionElegida));
+      })
+      .catch(() => {
+        /* si falla se sigue mostrando el mapa general */
+      });
+    return () => {
+      vivo = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionElegida, claveFiltros(filtros), desde, hasta]);
+
   /* 2) Estudios reales de la region elegida, con los filtros activos */
   useEffect(() => {
     if (!regionElegida) return;
     let vivo = true;
     setCargando(true);
     setFiltrando(true);
-    cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, 0)
+    cargarEstudiosEstructura(regionElegida, nombre, filtros, 10, 0, {desde, hasta})
       .then(d => {
         if (vivo) {
           setDatos(d);
@@ -345,7 +371,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
       vivo = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [regionElegida, nombre, claveFiltros(filtros)]);
+  }, [regionElegida, nombre, claveFiltros(filtros), desde, hasta]);
 
   /* Abre el estudio en el visor con enlace anonimo (un solo uso, sin datos).
      Si el atlas esta dentro de la APP, el visor lo abre la app (bottom sheet con
@@ -364,7 +390,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
       });
   };
 
-  const stat = regionElegida ? statsDeRegion(regionElegida) : undefined;
+  const stat = statsConFechas ?? (regionElegida ? statsDeRegion(regionElegida) : undefined);
   const sinModelo = regiones.some(r => REGION_SIN_MODELO.includes(r));
 
   /* La respuesta de la estructura es la mas completa; la de regiones sirve
