@@ -354,3 +354,54 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 }
 .ipse-diag-ver:hover{background:#f4f8ff;border-color:#0046ad}
 .ipse-diag-ver:focus-visible{outline:2px solid #0046ad;outline-offset:2px}
+
+/* ===================================================================== *
+ *  Dos columnas en la ficha: a la izquierda la busqueda por diagnostico  *
+ *  y a la derecha los estudios. Las dos respetan los mismos filtros.     *
+ * ===================================================================== */
+.ipse-dos-columnas{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  align-items:start;
+}
+.ipse-columna{min-width:0}
+/* Cuando la ficha es angosta, las columnas se apilan. */
+@media (max-width:1150px){
+  .ipse-dos-columnas{grid-template-columns:1fr}
+}
+/* Ampliada siempre caben las dos. */
+.detail-sheet.expandido .ipse-dos-columnas{grid-template-columns:1fr 1fr}
+
+/* --- filtro de fecha del diagnostico --- */
+.ipse-diag-fechas{margin:10px 0 6px;display:flex;flex-direction:column;gap:8px}
+.ipse-diag-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ipse-diag-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;padding:4px 10px;border-radius:14px;
+  border:1px solid #cbdbf5;background:#fff;color:#22304a;
+  cursor:pointer;transition:background .16s,border-color .16s,color .16s;
+}
+.ipse-diag-chip em{font-style:normal;font-size:10px;color:#7c8ba1}
+.ipse-diag-chip:hover{border-color:#0046ad;color:#0046ad}
+.ipse-diag-chip.activo{background:#0046ad;border-color:#0046ad;color:#fff}
+.ipse-diag-chip.activo em{color:#c9dcff}
+
+.ipse-diag-rango{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.ipse-diag-rango label{display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}
+.ipse-diag-rango span{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#7c8ba1}
+.ipse-diag-rango input{
+  font-size:12px;padding:6px 8px;border:1px solid #cbdbf5;border-radius:8px;
+  background:#fff;color:#22304a;outline:none;transition:border-color .16s,box-shadow .16s;
+  font-family:inherit;
+}
+.ipse-diag-rango input:focus{border-color:#0046ad;box-shadow:0 0 0 3px #0046ad1f}
+.ipse-diag-rango-limpiar{
+  font-size:10.5px;padding:6px 10px;border-radius:8px;
+  border:1px solid #cbdbf5;background:#f4f8ff;color:#0046ad;
+  cursor:pointer;white-space:nowrap;transition:background .16s;
+}
+.ipse-diag-rango-limpiar:hover{background:#e6efff}
+
+/* La lista de resultados del diagnostico, en su columna. */
+.ipse-diag-lista{max-height:52vh}

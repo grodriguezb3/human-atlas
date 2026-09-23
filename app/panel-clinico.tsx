@@ -519,9 +519,13 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
 
           {error && <p className="ipse-note ipse-error">{error}</p>}
 
-          {/* --- buscar un diagnostico en el texto de los informes --- */}
+          {/* --- dos columnas: el diagnostico a la izquierda y los estudios a
+               la derecha. Los dos respetan los filtros de sexo, edad y tipo. --- */}
+          <div className="ipse-dos-columnas">
+          <div className="ipse-columna">
           <BuscarDiagnostico filtros={filtros} onAbrir={abrirImagenes} />
-
+          </div>
+          <div className="ipse-columna">
           {!cargando && datos && datos.estudios.length > 0 && (
             <>
               <h4 className="ipse-sub">
@@ -573,6 +577,8 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
               )}
             </>
           )}
+          </div>
+          </div>
         </>
       )}
     </section>
@@ -607,6 +613,8 @@ function resaltar(texto: string, termino: string) {
 
 function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: (u: string, o: string) => void}) {
   const [termino, setTermino] = useState('');
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
   const [datos, setDatos] = useState<RespuestaDiagnostico | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
@@ -624,7 +632,7 @@ function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: 
     setCargando(true);
     // Se espera a que deje de escribir: la busqueda es sobre mucho texto.
     const id = setTimeout(() => {
-      buscarDiagnostico(t, filtros)
+      buscarDiagnostico(t, filtros, {desde, hasta})
         .then(r => {
           if (!vivo) return;
           setDatos(r);
@@ -644,9 +652,10 @@ function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: 
       clearTimeout(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [termino, clave]);
+  }, [termino, desde, hasta, clave]);
 
   const estudios = datos?.estudios ?? [];
+  const anios = datos?.anios ?? [];
 
   return (
     <div className="ipse-bloque ipse-diag">
@@ -678,6 +687,55 @@ function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: 
             ×
           </button>
         )}
+      </div>
+
+      {/* --- filtro de fecha: por anio o por rango exacto --- */}
+      <div className="ipse-diag-fechas">
+        {anios.length > 0 && (
+          <div className="ipse-diag-chips">
+            <button
+              type="button"
+              className={`ipse-diag-chip${desde === '' && hasta === '' ? ' activo' : ''}`}
+              onClick={() => { setDesde(''); setHasta(''); }}
+            >
+              Todo
+            </button>
+            {anios.map(a => {
+              const activo = desde === `${a.anio}-01-01` && hasta === `${a.anio}-12-31`;
+              return (
+                <button
+                  key={a.anio}
+                  type="button"
+                  className={`ipse-diag-chip${activo ? ' activo' : ''}`}
+                  onClick={() => {
+                    if (activo) { setDesde(''); setHasta(''); }
+                    else { setDesde(`${a.anio}-01-01`); setHasta(`${a.anio}-12-31`); }
+                  }}
+                >
+                  {a.anio} <em>{numero(a.n)}</em>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div className="ipse-diag-rango">
+          <label>
+            <span>Desde</span>
+            <input type="date" value={desde} max={hasta || undefined}
+                   onChange={e => setDesde(e.target.value)} />
+          </label>
+          <label>
+            <span>Hasta</span>
+            <input type="date" value={hasta} min={desde || undefined}
+                   onChange={e => setHasta(e.target.value)} />
+          </label>
+          {(desde !== '' || hasta !== '') && (
+            <button type="button" className="ipse-diag-rango-limpiar"
+                    onClick={() => { setDesde(''); setHasta(''); }}>
+              Quitar fechas
+            </button>
+          )}
+        </div>
       </div>
 
       {cargando && (
