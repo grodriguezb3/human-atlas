@@ -250,16 +250,37 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 /* ===================================================================== *
  *  Detalle ampliado: la ficha pasa a ocupar la pantalla de trabajo       *
  * ===================================================================== */
+/* Ampliado: la ficha se queda con la MITAD DERECHA y el atlas con la
+   izquierda, para poder leer el detalle sin dejar de ver el cuerpo. */
 .detail-sheet.expandido{
-  right:24px !important;
-  left:24px !important;
+  left:calc(50% + 8px) !important;
+  right:16px !important;
   width:auto !important;
   max-width:none !important;
-  top:20px !important;
-  bottom:20px !important;
+  top:16px !important;
+  bottom:16px !important;
   height:auto !important;
   border-radius:14px !important;
-  box-shadow:0 24px 60px #18253633 !important;
+  box-shadow:-20px 0 60px #18253624 !important;
+}
+
+/* Mientras esta ampliada, la escena ocupa solo la mitad izquierda y se
+   recentra sola: su resize() mide el ancho de su propio contenedor. */
+.studio.con-detalle-ampliado .scene{
+  width:50% !important;
+  right:auto !important;
+  left:0 !important;
+}
+/* Los controles del atlas se corren a esa mitad para no quedar debajo. */
+.studio.con-detalle-ampliado .view-controls,
+.studio.con-detalle-ampliado .top-actions{
+  right:calc(50% + 20px) !important;
+}
+.studio.con-detalle-ampliado .bottom-dock{
+  left:12px !important;
+  right:calc(50% + 20px) !important;
+  width:auto !important;
+  transform:none !important;
 }
 /* Con la ficha ampliada, el contenido se reparte en dos columnas anchas. */
 .detail-sheet.expandido .ipse-clinico{gap:18px}
