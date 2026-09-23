@@ -71,7 +71,18 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .ipse-abrir{display:flex;align-items:center;gap:5px;align-self:flex-start;font-size:11.5px;font-weight:600;color:#0046ad;background:none;border:0;padding:6px 0;cursor:pointer}
 .ipse-abrir:hover{text-decoration:underline}
 /* ---- Filtros del atlas (anonimo: sin datos del paciente) ----------- */
-.ipse-filtros{display:flex;flex-direction:column;gap:8px;padding:10px 11px;border:1px solid #dbe6f7;border-radius:10px;background:#fff}
+/* Filtros en dos columnas: los grupos de chips van juntos arriba
+   (Filtrar | Tipo) y los controles anchos abajo (Edad | Buscar).
+   En pantallas angostas vuelve a una sola columna. */
+.ipse-filtros{display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;align-items:start;padding:10px 11px;border:1px solid #dbe6f7;border-radius:10px;background:#fff}
+.ipse-filtros-sexo{order:1}
+.ipse-filtros-tipo{order:2}
+.ipse-filtros-edad{order:3}
+.ipse-filtros-buscar{order:4}
+/* Los controles anchos ocupan el resto de su columna sin desbordar. */
+.ipse-filtros-edad .ipse-edad-rango,
+.ipse-filtros-buscar .ipse-buscar{flex:1 1 auto;min-width:0}
+@media (max-width:900px){.ipse-filtros{grid-template-columns:1fr}}
 .ipse-filtros-linea{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .ipse-filtros-titulo{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:#4b5b73}
 .ipse-filtros-etiqueta{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:#6a7a92;min-width:34px}

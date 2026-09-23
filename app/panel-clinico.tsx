@@ -152,7 +152,7 @@ function BarraFiltros({
 
   return (
     <div className="ipse-filtros">
-      <div className="ipse-filtros-linea">
+      <div className="ipse-filtros-linea ipse-filtros-sexo">
         <span className="ipse-filtros-titulo">Filtrar</span>
         <span className="ipse-segmento" role="group" aria-label="Sexo">
           {([['', 'Todos'], ['F', 'Femenino'], ['M', 'Masculino']] as const).map(([v, t]) => (
@@ -185,7 +185,7 @@ function BarraFiltros({
         )}
       </div>
 
-      <div className="ipse-filtros-linea">
+      <div className="ipse-filtros-linea ipse-filtros-edad">
         <span className="ipse-filtros-etiqueta">Edad</span>
         <span className="ipse-edad-valor">
           <b>{local.edadMin}</b> a <b>{local.edadMax}</b> años
@@ -216,7 +216,7 @@ function BarraFiltros({
       </div>
 
       {modalidades.length > 1 && (
-        <div className="ipse-filtros-linea">
+        <div className="ipse-filtros-linea ipse-filtros-tipo">
           <span className="ipse-filtros-etiqueta">Tipo</span>
           <span className="ipse-segmento" role="group" aria-label="Tipo de estudio">
             <button
@@ -243,7 +243,7 @@ function BarraFiltros({
       {/* Búsqueda por descripción: dentro de la parte del cuerpo se puede
           precisar el estudio (p. ej. "mano", "rodilla"), incluidas las
           descripciones que combinan varias exploraciones. */}
-      <div className="ipse-filtros-linea">
+      <div className="ipse-filtros-linea ipse-filtros-buscar">
         <span className="ipse-filtros-etiqueta">Buscar</span>
         <input
           type="search"
