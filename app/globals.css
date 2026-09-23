@@ -292,12 +292,25 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .detail-sheet.expandido .detail-scroll{
   display:flex;flex-direction:column;gap:16px;
 }
-/* El panel ampliado va en flujo normal: la rejilla de tarjetas convertia cada
-   bloque en una celda y las dos columnas de abajo quedaban apretadas. */
+/* El panel ampliado: los datos de arriba van como TARJETAS en rejilla
+   (bento) y las dos columnas de estudios ocupan todo el ancho abajo, porque
+   llevan grid-column:1/-1. */
 .detail-sheet.expandido .ipse-clinico{
-  display:flex;
-  flex-direction:column;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
   gap:14px;
+  align-content:start;
+}
+/* Lo que debe ocupar todo el ancho aunque la rejilla tenga varias columnas. */
+.detail-sheet.expandido .ipse-clinico > .ipse-dos-columnas,
+.detail-sheet.expandido .ipse-clinico > .ipse-fechas,
+.detail-sheet.expandido .ipse-clinico > .ipse-filtros,
+.detail-sheet.expandido .ipse-clinico > .ipse-sub,
+.detail-sheet.expandido .ipse-clinico > .ipse-note,
+.detail-sheet.expandido .ipse-clinico > .ipse-lista,
+.detail-sheet.expandido .ipse-clinico > .ipse-abrir,
+.detail-sheet.expandido .ipse-clinico > .ipse-mas{
+  grid-column:1/-1;
 }
 /* Cada bloque de datos, como tarjeta. */
 .detail-sheet.expandido .ipse-clinico > .ipse-bloque{
@@ -473,3 +486,34 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
   transition:border-color .16s,box-shadow .16s;
 }
 .ipse-fechas-rango input:focus{border-color:#0046ad;box-shadow:0 0 0 3px #0046ad1f}
+
+/* ===================================================================== *
+ *  Diagnosticos buscados, cada uno como una ficha que se quita con la X  *
+ * ===================================================================== */
+.ipse-diag-terminos{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 6px;
+}
+.ipse-diag-termino{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:#fff;
+  background:#0046ad;border-radius:14px;padding:4px 6px 4px 11px;
+  box-shadow:0 1px 3px #0046ad33;
+}
+.ipse-diag-termino button{
+  width:16px;height:16px;line-height:1;display:flex;align-items:center;
+  justify-content:center;border:none;border-radius:50%;
+  background:#ffffff2e;color:#fff;font-size:12px;cursor:pointer;
+  transition:background .16s;
+}
+.ipse-diag-termino button:hover{background:#ffffff52}
+.ipse-diag-y{
+  font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#7c8ba1;
+  font-style:italic;
+}
+.ipse-diag-agregar{
+  position:absolute;right:8px;font-size:10.5px;font-weight:600;
+  padding:4px 9px;border-radius:7px;border:none;
+  background:#0046ad;color:#fff;cursor:pointer;
+  transition:background .16s;
+}
+.ipse-diag-agregar:hover{background:#00398f}

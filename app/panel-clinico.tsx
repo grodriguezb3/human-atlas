@@ -705,31 +705,54 @@ function FiltroFechas({
           );
         })}
       </div>
-      <div className="ipse-fechas-rango">
-        <label>
-          <span>Desde</span>
-          <input type="date" value={desde} max={hasta || undefined}
-                 onChange={e => onCambio(e.target.value, hasta)} />
-        </label>
-        <label>
-          <span>Hasta</span>
-          <input type="date" value={hasta} min={desde || undefined}
-                 onChange={e => onCambio(desde, e.target.value)} />
-        </label>
-      </div>
+      {/* Los campos desde/hasta solo aparecen cuando hay un rango puesto: con
+          "Todo" no aportan nada y llenan de ruido. */}
+      {(desde !== '' || hasta !== '') && (
+        <div className="ipse-fechas-rango">
+          <label>
+            <span>Desde</span>
+            <input type="date" value={desde} max={hasta || undefined}
+                   onChange={e => onCambio(e.target.value, hasta)} />
+          </label>
+          <label>
+            <span>Hasta</span>
+            <input type="date" value={hasta} min={desde || undefined}
+                   onChange={e => onCambio(desde, e.target.value)} />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
 
 function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAtlas; desde: string; hasta: string; onAbrir: (u: string, o: string) => void}) {
-  const [termino, setTermino] = useState('');
+  /** Los diagnosticos que se estan buscando a la vez (se exigen todos). */
+  const [terminos, setTerminos] = useState<string[]>([]);
+  /** Lo que se esta escribiendo, todavia sin agregar. */
+  const [borrador, setBorrador] = useState('');
   const [datos, setDatos] = useState<RespuestaDiagnostico | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const clave = claveFiltros(filtros);
 
+  /** Agrega lo escrito como un termino mas. */
+  const agregar = (valor: string) => {
+    const v = valor.trim();
+    if (v.length < 3) return;
+    if (terminos.some(x => x.toLowerCase() === v.toLowerCase())) {
+      setBorrador('');
+      return;
+    }
+    setTerminos([...terminos, v]);
+    setBorrador('');
+  };
+
+  const quitar = (valor: string) =>
+    setTerminos(terminos.filter(x => x !== valor));
+
   useEffect(() => {
-    const t = termino.trim();
+    // Se exigen TODOS los terminos: "fractura costal" pide las dos palabras.
+    const t = terminos.join(' ').trim();
     if (t.length < 3) {
       setDatos(null);
       setError('');
@@ -760,7 +783,7 @@ function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAt
       clearTimeout(id);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [termino, desde, hasta, clave]);
+  }, [terminos, desde, hasta, clave]);
 
   const estudios = datos?.estudios ?? [];
   const anios = datos?.anios ?? [];
@@ -775,22 +798,68 @@ function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAt
         por ejemplo <b>litiasis vesicular</b> o <b>fractura</b>.
       </p>
 
+      {/* Los diagnosticos buscados, cada uno como una ficha que se quita con la X */}
+      {terminos.length > 0 && (
+        <div className="ipse-diag-terminos">
+          {terminos.map(x => (
+            <span key={x} className="ipse-diag-termino">
+              {x}
+              <button
+                type="button"
+                onClick={() => quitar(x)}
+                title={`Quitar "${x}"`}
+                aria-label={`Quitar ${x}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {terminos.length > 1 && (
+            <span className="ipse-diag-y">se exigen todos</span>
+          )}
+        </div>
+      )}
+
       <div className="ipse-diag-caja">
         <Search size={14} className="ipse-diag-lupa" />
         <input
           className="ipse-diag-campo"
-          type="search"
-          value={termino}
-          onChange={e => setTermino(e.target.value)}
-          placeholder="Escriba el diagnóstico…"
+          type="text"
+          value={borrador}
+          onChange={e => setBorrador(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              agregar(borrador);
+            }
+            // Con la caja vacia, borrar saca el ultimo termino.
+            if (e.key === 'Backspace' && borrador === '' && terminos.length > 0) {
+              setTerminos(terminos.slice(0, -1));
+            }
+          }}
+          placeholder={
+            terminos.length === 0
+              ? 'Escriba un diagnóstico y pulse Enter…'
+              : 'Agregar otro diagnóstico…'
+          }
           aria-label="Buscar un diagnóstico en los informes"
         />
-        {termino !== '' && (
+        {borrador.trim().length >= 3 && (
+          <button
+            type="button"
+            className="ipse-diag-agregar"
+            onClick={() => agregar(borrador)}
+            title="Agregar este diagnóstico"
+          >
+            Agregar
+          </button>
+        )}
+        {borrador === '' && terminos.length > 0 && (
           <button
             type="button"
             className="ipse-diag-limpiar"
-            onClick={() => setTermino('')}
-            title="Borrar la búsqueda"
+            onClick={() => setTerminos([])}
+            title="Quitar todos"
           >
             ×
           </button>
@@ -851,7 +920,7 @@ function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAt
                   </button>
                 </div>
                 {e.extracto !== '' && (
-                  <p className="ipse-diag-extracto">…{resaltar(e.extracto, termino)}…</p>
+                  <p className="ipse-diag-extracto">…{resaltar(e.extracto, terminos.join(' '))}…</p>
                 )}
               </li>
             ))}
