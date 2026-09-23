@@ -418,6 +418,13 @@ export type RespuestaDiagnostico = {
   termino: string;
   total: number;
   especificos: number;
+  pagina: number;
+  por_pagina: number;
+  hay_mas: boolean;
+  /** Anios con resultados, para el filtro de fecha. */
+  anios: {anio: number; n: number}[];
+  desde: string;
+  hasta: string;
   estudios: EstudioDiagnostico[];
   nota?: string;
 };
@@ -434,13 +441,15 @@ export type RespuestaDiagnostico = {
 export async function buscarDiagnostico(
   termino: string,
   filtros: FiltrosAtlas = FILTROS_VACIOS,
-  limite = 40,
+  opciones: {desde?: string; hasta?: string; pagina?: number} = {},
 ): Promise<RespuestaDiagnostico> {
   const cuerpo = conUsuarioApp(aplicarFiltros(
     new URLSearchParams({
       Requerimiento: 'BuscarDiagnostico',
       termino,
-      limite: String(limite),
+      desde: opciones.desde ?? '',
+      hasta: opciones.hasta ?? '',
+      pagina: String(opciones.pagina ?? 1),
     }),
     filtros,
   ));
