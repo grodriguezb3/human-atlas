@@ -397,6 +397,61 @@ export async function cargarEstudiosEstructura(
   return j.data;
 }
 
+/** Un estudio hallado al buscar un diagnostico en el texto de los informes. */
+export type EstudioDiagnostico = {
+  id_study: number;
+  fecha: string;
+  sexo: string;
+  edad: number;
+  modalidad: string;
+  descripcion: string;
+  menciones: number;
+  extracto: string;
+  /** true cuando el diagnostico figura en el cierre del informe (impresion). */
+  especifico: boolean;
+};
+
+export type RespuestaDiagnostico = {
+  termino: string;
+  total: number;
+  especificos: number;
+  estudios: EstudioDiagnostico[];
+  nota?: string;
+};
+
+/**
+ * Busca un DIAGNOSTICO dentro del texto de los informes que ya estan cargados
+ * en el atlas (no en la descripcion del estudio: en lo que el medico escribio).
+ *
+ * Devuelve los estudios que lo mencionan, marcando cuales son CASOS
+ * ESPECIFICOS (el diagnostico esta en el cierre del informe, donde van las
+ * impresiones) y un extracto con el contexto para verlo de un vistazo.
+ * Nunca devuelve nombre ni cedula: el atlas es anonimo por diseno.
+ */
+export async function buscarDiagnostico(
+  termino: string,
+  filtros: FiltrosAtlas = FILTROS_VACIOS,
+  limite = 40,
+): Promise<RespuestaDiagnostico> {
+  const cuerpo = conUsuarioApp(aplicarFiltros(
+    new URLSearchParams({
+      Requerimiento: 'BuscarDiagnostico',
+      termino,
+      limite: String(limite),
+    }),
+    filtros,
+  ));
+  const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: cuerpo.toString(),
+  });
+  const j = (await r.json()) as Crudo<RespuestaDiagnostico>;
+  if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudo buscar el diagnóstico.');
+  return j.data;
+}
+
 /**
  * Abre un estudio en el visor SIN datos del paciente (atlas anonimo).
  *

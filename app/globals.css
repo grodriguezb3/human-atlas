@@ -190,3 +190,101 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .ipse-paciente-datos i{font-size:10.5px;font-style:normal;color:#42506a;background:#eef4ff;border:1px solid #dbe6f7;border-radius:999px;padding:1px 7px}
 .ipse-paciente-datos i.es-f{color:#8a3b62;background:#fdf1f6;border-color:#f2dbe6}
 .ipse-paciente-datos i.es-m{color:#1e3a72;background:#eef4ff;border-color:#dbe6f7}
+
+/* ===================================================================== *
+ *  Buscar un diagnostico en el texto de los informes                    *
+ *  Se busca sobre lo que el medico escribio, no sobre el nombre del      *
+ *  estudio: por eso el resultado trae el fragmento con el termino        *
+ *  resaltado y marca cuando es un caso especifico (esta en el cierre).   *
+ * ===================================================================== */
+.ipse-diag{margin-top:14px}
+.ipse-diag-ayuda{margin:2px 0 8px;font-size:11.5px;line-height:1.5;color:#5b6a80}
+.ipse-diag-ayuda b{color:#22304a;font-weight:600}
+
+.ipse-diag-caja{position:relative;display:flex;align-items:center}
+.ipse-diag-lupa{position:absolute;left:10px;color:#7c8ba1;pointer-events:none}
+.ipse-diag-campo{
+  width:100%;font-size:12.5px;padding:8px 30px 8px 30px;
+  border:1px solid #cbdbf5;border-radius:9px;background:#fff;color:#22304a;
+  outline:none;transition:border-color .16s,box-shadow .16s;
+}
+.ipse-diag-campo:focus{border-color:#0046ad;box-shadow:0 0 0 3px #0046ad1f}
+.ipse-diag-campo::-webkit-search-cancel-button{display:none}
+.ipse-diag-limpiar{
+  position:absolute;right:8px;width:18px;height:18px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  border:none;border-radius:50%;background:#eef3fb;color:#5b6a80;
+  font-size:14px;cursor:pointer;transition:background .16s,color .16s;
+}
+.ipse-diag-limpiar:hover{background:#dbe6f7;color:#22304a}
+
+.ipse-diag-resumen{margin:10px 0 6px;font-size:11.5px;color:#5b6a80}
+.ipse-diag-resumen b{color:#0046ad;font-size:13px}
+
+.ipse-diag-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;
+  max-height:340px;overflow-y:auto}
+.ipse-diag-item{
+  padding:9px 11px;border:1px solid #e3eaf6;border-left:3px solid #cfd9e8;
+  border-radius:8px;background:#fff;transition:border-color .16s,box-shadow .16s;
+}
+.ipse-diag-item:hover{border-color:#cbdbf5;box-shadow:0 1px 4px #1825360f}
+/* Caso especifico: el diagnostico esta en el cierre del informe. */
+.ipse-diag-ok{border-left-color:#0046ad;background:linear-gradient(90deg,#f4f8ff,#fff 60%)}
+
+.ipse-diag-fila{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
+.ipse-diag-fecha{font-size:11px;font-weight:600;color:#22304a}
+.ipse-diag-badge{
+  font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  padding:2px 6px;border-radius:5px;background:#0046ad;color:#fff;white-space:nowrap;
+}
+.ipse-diag-suave{background:#eef3fb;color:#5b6a80;font-weight:600}
+.ipse-diag-meta{font-size:10.5px;color:#7c8ba1;margin-left:auto;white-space:nowrap}
+
+.ipse-diag-desc{margin:0;font-size:11.5px;font-weight:600;color:#22304a}
+.ipse-diag-extracto{
+  margin:4px 0 0;font-size:11px;line-height:1.5;color:#4a5a72;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.ipse-diag-marca{background:#ffe9a8;color:#22304a;border-radius:3px;padding:0 2px;font-weight:700}
+
+/* ===================================================================== *
+ *  Detalle ampliado: la ficha pasa a ocupar la pantalla de trabajo       *
+ * ===================================================================== */
+.detail-sheet.expandido{
+  right:24px !important;
+  left:24px !important;
+  width:auto !important;
+  max-width:none !important;
+  top:20px !important;
+  bottom:20px !important;
+  height:auto !important;
+  border-radius:14px !important;
+  box-shadow:0 24px 60px #18253633 !important;
+}
+/* Con la ficha ampliada, el contenido se reparte en dos columnas anchas. */
+.detail-sheet.expandido .ipse-clinico{gap:18px}
+@media (min-width:1100px){
+  .detail-sheet.expandido .detail-scroll{
+    display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;align-content:start;
+  }
+  .detail-sheet.expandido .detail-scroll > *{min-width:0}
+}
+
+/* Boton para ampliar la ficha del detalle a toda la pantalla de trabajo. */
+.detail-ampliar{
+  position:absolute;top:14px;right:46px;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid #cbdbf5;border-radius:8px;background:#fff;color:#5b6a80;
+  cursor:pointer;transition:border-color .16s,color .16s,background .16s;
+}
+.detail-ampliar:hover{border-color:#0046ad;color:#0046ad;background:#f4f8ff}
+.detail-ampliar:focus-visible{outline:2px solid #0046ad;outline-offset:2px}
+.detail-ampliar[aria-pressed="true"]{border-color:#0046ad;color:#fff;background:#0046ad}
+
+/* La ficha normal era angosta para lo que se muestra dentro: se le da aire. */
+@media (min-width:900px){
+  .detail-sheet:not(.expandido){width:390px !important}
+}
+@media (min-width:1500px){
+  .detail-sheet:not(.expandido){width:440px !important}
+}

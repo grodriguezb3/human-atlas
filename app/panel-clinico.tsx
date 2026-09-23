@@ -5,13 +5,14 @@
  * Todo el texto va en espanol: son datos de la institucion.
  */
 import {useEffect, useMemo, useState} from 'react';
-import {Activity, ChevronRight, Users} from 'lucide-react';
+import {Activity, ChevronRight, Search, Users} from 'lucide-react';
 import {
   COLOR_MODALIDAD,
   EDAD_TOPE,
   FILTROS_VACIOS,
   REGION_ES,
   REGION_SIN_MODELO,
+  buscarDiagnostico,
   cargarEstudiosEstructura,
   claveFiltros,
   generarLinkAnonimo,
@@ -26,6 +27,7 @@ import {
   type DemografiaSexo,
   type FiltrosAtlas,
   type RespuestaEstructura,
+  type RespuestaDiagnostico,
 } from './ipsepacs';
 
 interface Props {
@@ -517,6 +519,9 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
 
           {error && <p className="ipse-note ipse-error">{error}</p>}
 
+          {/* --- buscar un diagnostico en el texto de los informes --- */}
+          <BuscarDiagnostico filtros={filtros} />
+
           {!cargando && datos && datos.estudios.length > 0 && (
             <>
               <h4 className="ipse-sub">
@@ -571,5 +576,161 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
         </>
       )}
     </section>
+  );
+}
+
+/**
+ * Busqueda por DIAGNOSTICO dentro del texto de los informes.
+ *
+ * A diferencia del buscador de estudios (que mira la descripcion del estudio),
+ * este mira lo que el medico ESCRIBIO en el informe, asi que encuentra el
+ * diagnostico aunque el estudio se llame distinto.
+ *
+ * Cada resultado dice si es un CASO ESPECIFICO (el diagnostico esta en el
+ * cierre del informe, donde van las impresiones) o una simple mencion, y
+ * muestra el fragmento con el termino resaltado para verlo de un vistazo.
+ */
+function resaltar(texto: string, termino: string) {
+  const palabras = termino
+    .split(/\s+/)
+    .filter(p => p.length >= 3)
+    .map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!texto || palabras.length === 0) return texto;
+  const re = new RegExp(`(${palabras.join('|')})`, 'gi');
+  const set = new Set(palabras.map(p => p.toLowerCase()));
+  return texto.split(re).map((parte, i) =>
+    set.has(parte.toLowerCase())
+      ? <mark key={i} className="ipse-diag-marca">{parte}</mark>
+      : <span key={i}>{parte}</span>,
+  );
+}
+
+function BuscarDiagnostico({filtros}: {filtros: FiltrosAtlas}) {
+  const [termino, setTermino] = useState('');
+  const [datos, setDatos] = useState<RespuestaDiagnostico | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState('');
+  const clave = claveFiltros(filtros);
+
+  useEffect(() => {
+    const t = termino.trim();
+    if (t.length < 3) {
+      setDatos(null);
+      setError('');
+      setCargando(false);
+      return;
+    }
+    let vivo = true;
+    setCargando(true);
+    // Se espera a que deje de escribir: la busqueda es sobre mucho texto.
+    const id = setTimeout(() => {
+      buscarDiagnostico(t, filtros)
+        .then(r => {
+          if (!vivo) return;
+          setDatos(r);
+          setError('');
+        })
+        .catch(e => {
+          if (!vivo) return;
+          setError(String(e?.message ?? e));
+          setDatos(null);
+        })
+        .finally(() => {
+          if (vivo) setCargando(false);
+        });
+    }, 380);
+    return () => {
+      vivo = false;
+      clearTimeout(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [termino, clave]);
+
+  const estudios = datos?.estudios ?? [];
+
+  return (
+    <div className="ipse-bloque ipse-diag">
+      <h4 className="ipse-sub">
+        <Search size={12} /> Buscar un diagnóstico
+      </h4>
+      <p className="ipse-diag-ayuda">
+        Busca en el texto de los informes, no en el nombre del estudio: escriba
+        por ejemplo <b>litiasis vesicular</b> o <b>fractura</b>.
+      </p>
+
+      <div className="ipse-diag-caja">
+        <Search size={14} className="ipse-diag-lupa" />
+        <input
+          className="ipse-diag-campo"
+          type="search"
+          value={termino}
+          onChange={e => setTermino(e.target.value)}
+          placeholder="Escriba el diagnóstico…"
+          aria-label="Buscar un diagnóstico en los informes"
+        />
+        {termino !== '' && (
+          <button
+            type="button"
+            className="ipse-diag-limpiar"
+            onClick={() => setTermino('')}
+            title="Borrar la búsqueda"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {cargando && (
+        <p className="ipse-note ipse-loading">
+          <Activity size={13} /> Buscando en los informes…
+        </p>
+      )}
+
+      {!cargando && error !== '' && <p className="ipse-note ipse-error">{error}</p>}
+
+      {!cargando && datos && estudios.length === 0 && (
+        <p className="ipse-note">
+          {datos.nota ?? 'No se encontró ese diagnóstico en los informes.'}
+        </p>
+      )}
+
+      {!cargando && datos && estudios.length > 0 && (
+        <>
+          <p className="ipse-diag-resumen">
+            <b>{numero(datos.especificos)}</b> {datos.especificos === 1 ? 'caso específico' : 'casos específicos'}
+            {' · '}
+            {numero(datos.total)} {datos.total === 1 ? 'estudio' : 'estudios'} en total
+          </p>
+          <ul className="ipse-diag-lista">
+            {estudios.map(e => (
+              <li
+                key={e.id_study}
+                className={`ipse-diag-item${e.especifico ? ' ipse-diag-ok' : ''}`}
+              >
+                <div className="ipse-diag-fila">
+                  <span className="ipse-diag-fecha">{fechaCorta(e.fecha)}</span>
+                  {e.especifico ? (
+                    <span className="ipse-diag-badge" title="El diagnóstico figura en el cierre del informe">
+                      Caso específico
+                    </span>
+                  ) : (
+                    <span className="ipse-diag-badge ipse-diag-suave" title="Aparece mencionado en el informe">
+                      Mencionado
+                    </span>
+                  )}
+                  <span className="ipse-diag-meta">
+                    {edadTexto(e.edad)} · {e.sexo === 'M' ? 'Masculino' : e.sexo === 'F' ? 'Femenino' : '—'} · {e.modalidad}
+                  </span>
+                </div>
+                <p className="ipse-diag-desc">{e.descripcion}</p>
+                {e.extracto !== '' && (
+                  <p className="ipse-diag-extracto">…{resaltar(e.extracto, termino)}…</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
   );
 }
