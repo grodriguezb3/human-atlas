@@ -292,11 +292,12 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .detail-sheet.expandido .detail-scroll{
   display:flex;flex-direction:column;gap:16px;
 }
+/* El panel ampliado va en flujo normal: la rejilla de tarjetas convertia cada
+   bloque en una celda y las dos columnas de abajo quedaban apretadas. */
 .detail-sheet.expandido .ipse-clinico{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  display:flex;
+  flex-direction:column;
   gap:14px;
-  align-content:start;
 }
 /* Cada bloque de datos, como tarjeta. */
 .detail-sheet.expandido .ipse-clinico > .ipse-bloque{
@@ -364,6 +365,8 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
   grid-template-columns:1fr 1fr;
   gap:16px;
   align-items:start;
+  width:100%;
+  grid-column:1/-1;
 }
 .ipse-columna{min-width:0}
 /* Cuando la ficha es angosta, las columnas se apilan. */
@@ -405,3 +408,68 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 
 /* La lista de resultados del diagnostico, en su columna. */
 .ipse-diag-lista{max-height:52vh}
+
+/* ===================================================================== *
+ *  Ficha ampliada: los datos de la institucion en una fila compacta      *
+ *  arriba, para que las dos columnas de estudios queden con todo el       *
+ *  ancho abajo.                                                          *
+ * ===================================================================== */
+.detail-sheet.expandido .ipse-clinico > .ipse-bloque{
+  margin-top:0;
+}
+/* La fila de estadisticas: los bloques se reparten sin estirarse. */
+.detail-sheet.expandido .ipse-clinico > .ipse-bloque:not(.ipse-diag){
+  padding:10px 12px;
+  background:#fff;
+  border:1px solid #e3eaf6;
+  border-radius:10px;
+}
+
+/* ===================================================================== *
+ *  Filtro de FECHAS general (aplica al diagnostico y a los estudios)     *
+ * ===================================================================== */
+.ipse-fechas{
+  padding:10px 12px;
+  background:#fff;
+  border:1px solid #e3eaf6;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+}
+.ipse-fechas-titulo{
+  display:flex;align-items:center;gap:6px;
+  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#7c8ba1;
+}
+.ipse-fechas-limpiar{
+  margin-left:auto;font-size:10.5px;padding:3px 9px;border-radius:7px;
+  border:1px solid #cbdbf5;background:#f4f8ff;color:#0046ad;cursor:pointer;
+  text-transform:none;letter-spacing:0;font-weight:600;
+}
+.ipse-fechas-limpiar:hover{background:#e6efff}
+
+.ipse-fechas-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ipse-fecha-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;padding:5px 11px;border-radius:15px;
+  border:1px solid #cbdbf5;background:#fff;color:#22304a;
+  cursor:pointer;transition:background .16s,border-color .16s,color .16s;
+  white-space:nowrap;
+}
+.ipse-fecha-chip em{font-style:normal;font-size:10px;color:#7c8ba1}
+.ipse-fecha-chip:hover{border-color:#0046ad;color:#0046ad}
+.ipse-fecha-chip.activo{background:#0046ad;border-color:#0046ad;color:#fff}
+.ipse-fecha-chip.activo em{color:#c9dcff}
+
+.ipse-fechas-rango{display:flex;gap:10px;flex-wrap:wrap}
+.ipse-fechas-rango label{display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px}
+.ipse-fechas-rango span{
+  font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:#7c8ba1;
+}
+.ipse-fechas-rango input{
+  font-size:12px;padding:6px 9px;border:1px solid #cbdbf5;border-radius:8px;
+  background:#fff;color:#22304a;outline:none;font-family:inherit;
+  transition:border-color .16s,box-shadow .16s;
+}
+.ipse-fechas-rango input:focus{border-color:#0046ad;box-shadow:0 0 0 3px #0046ad1f}

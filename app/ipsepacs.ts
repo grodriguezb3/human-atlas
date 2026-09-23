@@ -397,6 +397,54 @@ export async function cargarEstudiosEstructura(
   return j.data;
 }
 
+/** Un estudio del listado general (anonimizado). */
+export type EstudioReciente = {
+  id_study: number;
+  modalidad: string;
+  descripcion: string;
+  sexo: string;
+  edad: number;
+  fecha: string;
+  study_uid: string;
+  orthanc_uid: string;
+};
+
+export type RespuestaRecientes = {
+  total: number;
+  mostrados: number;
+  hay_mas: boolean;
+  estudios: EstudioReciente[];
+};
+
+/**
+ * Estudios recientes de toda la institucion, con los mismos filtros que el
+ * resto del atlas (sexo, edad, modalidad) y el rango de fechas general.
+ */
+export async function cargarEstudiosRecientes(
+  filtros: FiltrosAtlas = FILTROS_VACIOS,
+  opciones: {desde?: string; hasta?: string; limite?: number; offset?: number} = {},
+): Promise<RespuestaRecientes> {
+  const cuerpo = conUsuarioApp(aplicarFiltros(
+    new URLSearchParams({
+      Requerimiento: 'EstudiosRecientes',
+      desde: opciones.desde ?? '',
+      hasta: opciones.hasta ?? '',
+      limite: String(opciones.limite ?? 20),
+      offset: String(opciones.offset ?? 0),
+    }),
+    filtros,
+  ));
+  const r = await fetch(`${API}/Ajax/Aj_Atlas3D.php`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: cuerpo.toString(),
+  });
+  const j = (await r.json()) as Crudo<RespuestaRecientes>;
+  if (!j.success || !j.data) throw new Error(j.error ?? 'No se pudieron obtener los estudios.');
+  return j.data;
+}
+
 /** Un estudio hallado al buscar un diagnostico en el texto de los informes. */
 export type EstudioDiagnostico = {
   id_study: number;

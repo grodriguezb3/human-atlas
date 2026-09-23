@@ -5,7 +5,7 @@
  * Todo el texto va en espanol: son datos de la institucion.
  */
 import {useEffect, useMemo, useState} from 'react';
-import {Activity, ChevronRight, Eye, Search, Users} from 'lucide-react';
+import {Activity, Calendar, ChevronRight, Eye, Search, Users} from 'lucide-react';
 import {
   COLOR_MODALIDAD,
   EDAD_TOPE,
@@ -272,6 +272,11 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
   const [datos, setDatos] = useState<RespuestaEstructura | null>(null);
   const [regionElegida, setRegionElegida] = useState<string>('');
   const [filtros, setFiltros] = useState<FiltrosAtlas>(FILTROS_VACIOS);
+  /** Rango de fechas GENERAL: lo usan el diagnostico y el listado de estudios. */
+  /** Anios con datos, para los chips del filtro de fechas. */
+  const aniosFiltro = datos?.anios ?? [];
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
   const [filtrando, setFiltrando] = useState(false);
   const [abriendo, setAbriendo] = useState<string>('');
   /** Se usa mientras se trae el siguiente bloque de la lista. */
@@ -417,6 +422,17 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
             }}
           />
 
+          {/* El filtro de fechas es general: aplica a las dos columnas de abajo. */}
+          <FiltroFechas
+            desde={desde}
+            hasta={hasta}
+            anios={aniosFiltro}
+            onCambio={(d, h) => {
+              setDesde(d);
+              setHasta(h);
+            }}
+          />
+
           {/* --- titular: volumen, edad y sexo de un vistazo --- */}
           <div className="ipse-stat">
             <strong>{numero(total)}</strong>
@@ -523,7 +539,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                la derecha. Los dos respetan los filtros de sexo, edad y tipo. --- */}
           <div className="ipse-dos-columnas">
           <div className="ipse-columna">
-          <BuscarDiagnostico filtros={filtros} onAbrir={abrirImagenes} />
+          <BuscarDiagnostico filtros={filtros} desde={desde} hasta={hasta} onAbrir={abrirImagenes} />
           </div>
           <div className="ipse-columna">
           {!cargando && datos && datos.estudios.length > 0 && (
@@ -611,10 +627,102 @@ function resaltar(texto: string, termino: string) {
   );
 }
 
-function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: (u: string, o: string) => void}) {
+/**
+ * Filtro de FECHAS, general para todo el panel: aplica igual a la busqueda por
+ * diagnostico y al listado de estudios.
+ *
+ * Trae periodos ya hechos (hoy, ultimos 7 dias, este anio...) porque escribir
+ * dos fechas a mano para lo de siempre es incomodo.
+ */
+function FiltroFechas({
+  desde, hasta, anios, onCambio,
+}: {
+  desde: string;
+  hasta: string;
+  anios: {anio: number; n: number}[];
+  onCambio: (desde: string, hasta: string) => void;
+}) {
+  const hoy = new Date();
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const haceDias = (n: number) => {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() - n);
+    return iso(d);
+  };
+
+  const anioActual = hoy.getFullYear();
+  const periodos: {etiqueta: string; desde: string; hasta: string}[] = [
+    {etiqueta: 'Todo', desde: '', hasta: ''},
+    {etiqueta: 'Hoy', desde: iso(hoy), hasta: iso(hoy)},
+    {etiqueta: 'Últimos 7 días', desde: haceDias(7), hasta: iso(hoy)},
+    {etiqueta: 'Últimos 30 días', desde: haceDias(30), hasta: iso(hoy)},
+    {etiqueta: 'Este año', desde: `${anioActual}-01-01`, hasta: `${anioActual}-12-31`},
+    {etiqueta: 'Año pasado', desde: `${anioActual - 1}-01-01`, hasta: `${anioActual - 1}-12-31`},
+  ];
+
+  const activo = (p: {desde: string; hasta: string}) =>
+    p.desde === desde && p.hasta === hasta;
+
+  return (
+    <div className="ipse-fechas">
+      <div className="ipse-fechas-titulo">
+        <Calendar size={12} /> Fechas
+        {(desde !== '' || hasta !== '') && (
+          <button
+            type="button"
+            className="ipse-fechas-limpiar"
+            onClick={() => onCambio('', '')}
+          >
+            Quitar
+          </button>
+        )}
+      </div>
+      <div className="ipse-fechas-chips">
+        {periodos.map(p => (
+          <button
+            key={p.etiqueta}
+            type="button"
+            className={`ipse-fecha-chip${activo(p) ? ' activo' : ''}`}
+            onClick={() => onCambio(p.desde, p.hasta)}
+          >
+            {p.etiqueta}
+          </button>
+        ))}
+        {anios.map(a => {
+          const d = `${a.anio}-01-01`;
+          const h = `${a.anio}-12-31`;
+          const on = desde === d && hasta === h;
+          return (
+            <button
+              key={a.anio}
+              type="button"
+              className={`ipse-fecha-chip${on ? ' activo' : ''}`}
+              onClick={() => onCambio(on ? '' : d, on ? '' : h)}
+            >
+              {a.anio} <em>{numero(a.n)}</em>
+            </button>
+          );
+        })}
+      </div>
+      <div className="ipse-fechas-rango">
+        <label>
+          <span>Desde</span>
+          <input type="date" value={desde} max={hasta || undefined}
+                 onChange={e => onCambio(e.target.value, hasta)} />
+        </label>
+        <label>
+          <span>Hasta</span>
+          <input type="date" value={hasta} min={desde || undefined}
+                 onChange={e => onCambio(desde, e.target.value)} />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function BuscarDiagnostico({filtros, desde, hasta, onAbrir}: {filtros: FiltrosAtlas; desde: string; hasta: string; onAbrir: (u: string, o: string) => void}) {
   const [termino, setTermino] = useState('');
-  const [desde, setDesde] = useState('');
-  const [hasta, setHasta] = useState('');
   const [datos, setDatos] = useState<RespuestaDiagnostico | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
@@ -687,55 +795,6 @@ function BuscarDiagnostico({filtros, onAbrir}: {filtros: FiltrosAtlas; onAbrir: 
             ×
           </button>
         )}
-      </div>
-
-      {/* --- filtro de fecha: por anio o por rango exacto --- */}
-      <div className="ipse-diag-fechas">
-        {anios.length > 0 && (
-          <div className="ipse-diag-chips">
-            <button
-              type="button"
-              className={`ipse-diag-chip${desde === '' && hasta === '' ? ' activo' : ''}`}
-              onClick={() => { setDesde(''); setHasta(''); }}
-            >
-              Todo
-            </button>
-            {anios.map(a => {
-              const activo = desde === `${a.anio}-01-01` && hasta === `${a.anio}-12-31`;
-              return (
-                <button
-                  key={a.anio}
-                  type="button"
-                  className={`ipse-diag-chip${activo ? ' activo' : ''}`}
-                  onClick={() => {
-                    if (activo) { setDesde(''); setHasta(''); }
-                    else { setDesde(`${a.anio}-01-01`); setHasta(`${a.anio}-12-31`); }
-                  }}
-                >
-                  {a.anio} <em>{numero(a.n)}</em>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <div className="ipse-diag-rango">
-          <label>
-            <span>Desde</span>
-            <input type="date" value={desde} max={hasta || undefined}
-                   onChange={e => setDesde(e.target.value)} />
-          </label>
-          <label>
-            <span>Hasta</span>
-            <input type="date" value={hasta} min={desde || undefined}
-                   onChange={e => setHasta(e.target.value)} />
-          </label>
-          {(desde !== '' || hasta !== '') && (
-            <button type="button" className="ipse-diag-rango-limpiar"
-                    onClick={() => { setDesde(''); setHasta(''); }}>
-              Quitar fechas
-            </button>
-          )}
-        </div>
       </div>
 
       {cargando && (
