@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Atlas IPSE PACS · Acceso para instituciones educativas</title>
+<style>
+  /* Mismo lenguaje visual del atlas: fondo claro, azul #263b48, tarjetas glass. */
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,"Segoe UI",Arial,sans-serif;
+       background:#f3f4f4;color:#20242b;min-height:100dvh}
+  .wrap{max-width:640px;margin:0 auto;padding:32px 20px 64px}
+  .eyebrow{font-size:10px;font-weight:600;letter-spacing:.16em;color:#737d89;text-transform:uppercase}
+  h1{font-size:28px;font-weight:600;letter-spacing:-.8px;margin:10px 0 6px}
+  p.lead{font-size:14px;line-height:1.6;color:#68727d;margin:0 0 22px}
+  .card{background:#fff;border:1px solid #25384a17;border-radius:14px;padding:22px;
+        box-shadow:0 16px 48px #2433440a;margin-bottom:16px}
+  .card h2{font-size:15px;font-weight:600;margin:0 0 14px}
+  label{display:block;font-size:12px;color:#68727d;margin:12px 0 6px}
+  input,select,button{font:inherit;width:100%;border-radius:10px;min-height:46px;padding:0 13px}
+  input,select{border:1px solid #18253622;background:#fff;color:#20242b}
+  input:focus,select:focus{outline:2px solid #538d9a;outline-offset:1px}
+  button{border:0;background:#263b48;color:#fff;font-weight:500;cursor:pointer;margin-top:16px}
+  button:hover{background:#1e2f3a}
+  button[disabled]{opacity:.45;cursor:default}
+  button.ghost{background:none;color:#5b6b78;border:1px solid #18253622}
+  .fila{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.fila{grid-template-columns:1fr}}
+  .aviso{border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.55;margin-top:14px}
+  .aviso.info{background:#eef4f8;color:#33475a}
+  .aviso.ok{background:#e9f4ef;color:#255845}
+  .aviso.error{background:#fbeceb;color:#7f2f26}
+  .aviso.lock{background:#fdf6e7;color:#6d5420}
+  .oculto{display:none}
+  .estudio{border:1px solid #18253614;border-radius:10px;padding:12px 14px;margin-top:10px;background:#fbfbfb}
+  .estudio b{display:block;font-size:14px;margin-bottom:4px}
+  .estudio span{font-size:12px;color:#68727d}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-size:11px;background:#eef1f3;color:#4d5a66;border-radius:999px;padding:4px 10px}
+  .barra{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+  .barra button{width:auto;padding:0 16px;margin:0}
+  .topline{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  footer{font-size:11px;color:#87929d;text-align:center;margin-top:26px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topline">
+    <div>
+      <div class="eyebrow">IPSE PACS</div>
+      <h1 id="titulo">Atlas · Instituciones educativas</h1>
+    </div>
+    <button id="salir" class="ghost oculto" style="width:auto;padding:0 14px">Salir</button>
+  </div>
+  <p class="lead" id="subtitulo">Acceso para instituciones educativas. Las cuentas las aprueba una por una el administrador del PACS.</p>
+
+  <!-- ENTRADA: selector de institucion + login -->
+  <div id="panelEntrada">
+    <div class="card">
+      <h2>Entrar</h2>
+      <label for="inst">Institución</label>
+      <select id="inst"></select>
+      <div class="fila">
+        <div><label for="correo">Correo</label><input id="correo" type="email" autocomplete="username"></div>
+        <div><label for="clave">Clave</label><input id="clave" type="password" autocomplete="current-password"></div>
+      </div>
+      <button id="btnEntrar">Entrar</button>
+      <div id="msgEntrada"></div>
+    </div>
+
+    <div class="card">
+      <h2>Pedir acceso</h2>
+      <label for="sInst">Institución</label>
+      <select id="sInst"></select>
+      <label for="sNombre">Nombre y apellido</label>
+      <input id="sNombre" type="text">
+      <div class="fila">
+        <div><label for="sCorreo">Correo</label><input id="sCorreo" type="email"></div>
+        <div><label for="sRol">Rol</label>
+          <select id="sRol">
+            <option value="docente">Docente</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="admin_institucion">Administrador de la institución</option>
+          </select>
+        </div>
+      </div>
+      <label for="sClave">Clave (mínimo 8)</label>
+      <input id="sClave" type="password">
+      <button id="btnPedir">Enviar la solicitud</button>
+      <div id="msgPedir"></div>
+    </div>
+  </div>
+
+  <!-- DENTRO: estudios -->
+  <div id="panelDentro" class="oculto">
+    <div class="barra">
+      <div><span class="eyebrow">Sesión de institución</span>
+        <div id="quien" style="font-size:14px;color:#33475a"></div></div>
+    </div>
+    <div class="card">
+      <h2>Estudios</h2>
+      <div class="fila">
+        <div><label for="fRegion">Región</label><select id="fRegion"><option value="">Todas</option></select></div>
+        <div><label for="fLimite">Cuántos</label>
+          <select id="fLimite"><option>10</option><option selected>25</option><option>50</option></select></div>
+      </div>
+      <button id="btnBuscar">Ver estudios</button>
+      <div id="msgEstudios"></div>
+      <div id="listaEstudios"></div>
+    </div>
+  </div>
+
+  <footer>
+    Los estudios se muestran <b>anonimizados</b>: sin nombre, sin cédula y sin fecha exacta.<br>
+    Cada consulta de una institución queda registrada.
+  </footer>
+</div>
+
+<script>
+/* La API vive en el backend del PACS. En local apunta al 8081; en producción
+   al mismo dominio del atlas. Se puede sobreescribir con ?api=... */
+const API = new URLSearchParams(location.search).get('api')
+         || (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+             ? 'http://127.0.0.1:8083/Ajax/Aj_AtlasInstitucion.php'
+             : '/Ajax/Aj_AtlasInstitucion.php');
+
+const $ = id => document.getElementById(id);
+const token = {v: localStorage.getItem('atlas_token') || ''};
+
+function aviso(destino, texto, tipo) {
+  destino.innerHTML = texto ? `<div class="aviso ${tipo || 'info'}">${texto}</div>` : '';
+}
+
+async function pedir(accion, datos, metodo) {
+  const opciones = {method: metodo || (datos ? 'POST' : 'GET'), headers: {}};
+  if (datos) { opciones.headers['Content-Type'] = 'application/json'; opciones.body = JSON.stringify(datos); }
+  if (token.v) opciones.headers['X-Atlas-Token'] = token.v;
+  const r = await fetch(`${API}?accion=${accion}`, opciones);
+  try { return await r.json(); } catch (e) { return {ok:false, error:'RESPUESTA_INVALIDA'}; }
+}
+
+/* ---- Entrada ---------------------------------------------------------- */
+async function cargarInstituciones() {
+  const d = await pedir('instituciones');
+  const lista = (d.instituciones || []);
+  const opciones = lista.map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+  $('inst').innerHTML = opciones || '<option value="">(no hay instituciones cargadas)</option>';
+  $('sInst').innerHTML = opciones;
+}
+
+$('btnEntrar').onclick = async () => {
+  aviso($('msgEntrada'), 'Entrando…');
+  const d = await pedir('login', {correo: $('correo').value.trim(), clave: $('clave').value});
+  if (!d.ok) {
+    const textos = {
+      CREDENCIALES: 'Correo o clave incorrectos.',
+      PENDIENTE_APROBACION: 'Su solicitud está <b>pendiente de aprobación</b>: todavía no puede entrar.',
+      CUENTA_RECHAZADA: 'Esta cuenta fue rechazada.',
+      CUENTA_INACTIVA: 'La cuenta o la institución están desactivadas.'
+    };
+    aviso($('msgEntrada'), textos[d.error] || 'No se pudo entrar.', 'error');
+    return;
+  }
+  token.v = d.token;
+  localStorage.setItem('atlas_token', d.token);
+  aviso($('msgEntrada'), 'Listo.', 'ok');
+  abrirSesion(d.cuenta, d.acceso_estudios);
+};
+
+$('btnPedir').onclick = async () => {
+  aviso($('msgPedir'), 'Enviando…');
+  const d = await pedir('solicitar_acceso', {
+    id_institucion: parseInt($('sInst').value || '0', 10),
+    nombre: $('sNombre').value.trim(),
+    correo: $('sCorreo').value.trim(),
+    clave: $('sClave').value,
+    rol: $('sRol').value
+  });
+  if (d.ok) {
+    aviso($('msgPedir'), 'Solicitud registrada. El administrador del PACS debe aprobarla.', 'ok');
+  } else {
+    const textos = {
+      CORREO_YA_REGISTRADO: 'Ese correo ya tiene una cuenta.',
+      CORREO_INVALIDO: 'El correo no es válido.',
+      CLAVE_CORTA: 'La clave necesita al menos 8 caracteres.',
+      FALTAN_DATOS: 'Faltan datos.',
+      TOPE_CUENTAS: 'La institución llegó a su tope de cuentas.'
+    };
+    aviso($('msgPedir'), textos[d.error] || 'No se pudo registrar.', 'error');
+  }
+};
+
+/* ---- Dentro ----------------------------------------------------------- */
+function abrirSesion(cuenta, accesoEstudios) {
+  $('panelEntrada').classList.add('oculto');
+  $('panelDentro').classList.remove('oculto');
+  $('salir').classList.remove('oculto');
+  $('quien').textContent = `${cuenta.nombre} · ${cuenta.rol} · ${cuenta.institucion}`;
+  window.__accesoEstudios = accesoEstudios;
+  if (!accesoEstudios) {
+    aviso($('msgEstudios'),
+      'Los estudios todavía no están habilitados para instituciones: falta terminar el borrado '
+      + 'de los datos que quedan dentro de las imágenes. Mientras tanto puede usar el atlas anatómico.', 'lock');
+    $('btnBuscar').disabled = true;
+  }
+}
+
+$('salir').onclick = async () => {
+  await pedir('salir', {});
+  localStorage.removeItem('atlas_token');
+  location.reload();
+};
+
+$('btnBuscar').onclick = async () => {
+  aviso($('msgEstudios'), 'Buscando…');
+  $('listaEstudios').innerHTML = '';
+  const d = await pedir('estudios', {limite: parseInt($('fLimite').value, 10), region: $('fRegion').value});
+  if (!d.ok) {
+    aviso($('msgEstudios'), d.error === 'SESION_INVALIDA'
+      ? 'La sesión venció. Vuelva a entrar.' : 'No se pudo consultar.', 'error');
+    return;
+  }
+  if (d.habilitado === false) { aviso($('msgEstudios'), d.motivo, 'lock'); return; }
+  if (!d.estudios.length) { aviso($('msgEstudios'), 'No hay estudios para ese filtro.', 'info'); return; }
+  aviso($('msgEstudios'), `${d.total} estudio(s). Datos anonimizados.`, 'ok');
+  $('listaEstudios').innerHTML = d.estudios.map(e => `
+    <div class="estudio">
+      <b>${e.descripcion || 'Sin descripción'}</b>
+      <span>Periodo ${e.periodo || '—'} · huella ${e.huella}</span>
+      <div class="meta">
+        ${e.region ? `<span class="chip">${e.region}</span>` : ''}
+        ${e.sexo ? `<span class="chip">${e.sexo}</span>` : ''}
+        ${e.grupo_edad ? `<span class="chip">${e.grupo_edad} años</span>` : ''}
+      </div>
+    </div>`).join('');
+};
+
+/* ---- Arranque --------------------------------------------------------- */
+(async () => {
+  await cargarInstituciones();
+  if (token.v) {
+    const d = await pedir('sesion');
+    if (d.ok) abrirSesion(d.cuenta, d.acceso_estudios);
+    else { localStorage.removeItem('atlas_token'); token.v = ''; }
+  }
+})();
+</script>
+</body>
+</html>
