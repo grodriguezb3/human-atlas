@@ -21,9 +21,10 @@ export default function Home(){
  const [ampliado,setAmpliado]=useState(false),[atlas,setAtlas]=useState<Atlas|null>(null),[state,setState]=useState(initial),[progress,setProgress]=useState(0),[error,setError]=useState(''),[panel,setPanel]=useState<'layers'|'search'|null>(null),[details,setDetails]=useState(false),[about,setAbout]=useState(false),[query,setQuery]=useState(''),[chosen,setChosen]=useState<Concept|null>(null),[filtros,setFiltros]=useState<FiltrosAtlas>(FILTROS_VACIOS),recargaRef=useRef<((f:FiltrosAtlas)=>void)|null>(null);
  const selectedPartsCount=state.selected.length;
  useEffect(()=>{const abort=new AbortController();setProgress(0);setError('');setAtlas(null);setChosen(null);setDetails(false);setState({...initial,visible:DEFAULT_VISIBLE});fetch(`${RUTA_BASE}models/atlas.json`,{signal:abort.signal}).then(r=>{if(!r.ok)throw new Error(t('errors.catalogueLoadFailed'));return r.json();}).then(data=>setAtlas(conRutaBase(data as Atlas))).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>abort.abort();},[locale]);
- // Al ampliar o reducir la ficha cambia el ancho de la escena: se avisa
- // para que el muñeco se vuelva a encuadrar en el espacio que queda.
- useEffect(()=>{const id=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));return()=>cancelAnimationFrame(id);},[ampliado]);
+ // Al abrir o cerrar la ficha, y al ampliarla o reducirla, cambia el ancho de la
+ // escena (que pasa a la mitad): se avisa para que el muñeco se vuelva a
+ // encuadrar en el espacio que queda.
+ useEffect(()=>{const id=requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));return()=>cancelAnimationFrame(id);},[ampliado,details,selectedPartsCount]);
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='/'&&!(e.target instanceof HTMLInputElement)&&!(e.target instanceof HTMLTextAreaElement)){e.preventDefault();setPanel('search');setDetails(false);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
  // Al seleccionar una estructura la ficha sale AMPLIADA por defecto: hay mucha
  // informacion (estadistica, filtros, diagnostico y estudios) y en la columna
@@ -42,7 +43,11 @@ export default function Home(){
  const reset=()=>{setState(s=>({...initial,visible:DEFAULT_VISIBLE,reset:s.reset+1}));setChosen(null);setDetails(false);setPanel(null);};
  const openPanel=(next:'layers'|'search')=>{setDetails(false);setPanel(p=>p===next?null:next);};
  const cycleLocale=()=>setLocale(LOCALES[(LOCALES.indexOf(locale)+1)%LOCALES.length]);
- return <main className={`studio${ampliado?' con-detalle-ampliado':''}`}>
+ // Solo se parte la pantalla (escena a la izquierda, ficha a la derecha) si la
+ // ficha esta REALMENTE abierta y ampliada. Antes bastaba con que estuviera
+ // ampliada, asi que al cerrarla la escena se quedaba en la mitad izquierda.
+ const fichaPartida=ampliado&&details&&selectedPartsCount>0;
+ return <main className={`studio${fichaPartida?' con-detalle-ampliado':''}`}>
   {atlas&&<AnatomyScene atlas={atlas} state={{...state,inspectorOpen:details&&selectedParts.length>0}} onSelect={choosePart} onProgress={n=>{setProgress(n);if(n===100)setError('');}} onError={setError} filtros={filtros} onListo={fn=>{recargaRef.current=fn;}}/>}
   <div className="vignette"/>
   <header className="identity"><div className="eyebrow"><span className="status-dot"/> {t('header.eyebrow')}</div><h1>{t('header.title')}<Badge variant="outline" className="edition">3D</Badge></h1><div className="identity-meta">{t('header.modeledPieces',{count:atlas?atlas.parts.length.toLocaleString(locale):'2,234'})} <span>·</span> {t('header.datasetName')}</div></header>
