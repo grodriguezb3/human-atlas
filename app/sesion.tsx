@@ -179,7 +179,11 @@ export default function Sesion() {
               <dl className="perfil-datos">
                 {cuenta.correo && (<><dt><Mail size={14}/>Correo</dt><dd>{cuenta.correo}</dd></>)}
                 {cuenta.telefono && (<><dt>Teléfono</dt><dd>{cuenta.telefono}</dd></>)}
-                {cuenta.rol && (<><dt>Rol</dt><dd>{NOMBRE_ROL[cuenta.rol] || cuenta.rol}</dd></>)}
+                {/* El rol se quita: al usuario no le aporta. En su lugar va la
+                    marca de IPSE, enlazada y en pestaña nueva. */}
+                <dt>IPSE S.A.</dt>
+                <dd><a className="perfil-enlace" href="https://ipse.com.ec" target="_blank"
+                       rel="noreferrer">ipse.com.ec</a></dd>
                 {cuenta.institucion && (
                   <><dt>Institución</dt><dd>{cuenta.institucion}{cuenta.dominio ? ` · @${cuenta.dominio}` : ''}</dd></>
                 )}

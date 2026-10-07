@@ -118,8 +118,15 @@
   .opcion{border:1px solid var(--linea);border-radius:15px;background:#fff;padding:16px 12px;text-align:center;
           cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:11px;
           transition:border-color .18s,box-shadow .18s,transform .18s var(--curva)}
+  /* Las tarjetas NO usan el relleno azul del boton general: si se pintan, el
+     nombre oscuro desaparece encima. Fondo claro siempre y el elegido se marca
+     con el borde y un tinte suave, para que el nombre SIEMPRE se lea. */
+  .opcion,.opcion:hover,.opcion:active,.opcion:focus{background:#fff;color:#39485a}
   .opcion:hover{border-color:#b9cbe4;transform:translateY(-2px);box-shadow:0 12px 26px #0b25400f}
-  .opcion[aria-pressed="true"]{border-color:var(--ipse);box-shadow:0 0 0 3px #0046ad1a}
+  .opcion:focus-visible{outline:none;box-shadow:0 0 0 3px #0046ad26}
+  .opcion[aria-pressed="true"],.opcion[aria-pressed="true"]:hover{background:#f2f7ff;border-color:var(--ipse);
+          box-shadow:0 0 0 3px #0046ad1f}
+  .opcion[aria-pressed="true"] span{color:var(--ipse-hondo)}
   .opcion .escudo{width:60px;height:60px;border-radius:14px;background:#f6f8fb;border:1px solid var(--linea);
                   display:flex;align-items:center;justify-content:center;overflow:hidden}
   .opcion .escudo img{max-width:50px;max-height:50px;object-fit:contain}
