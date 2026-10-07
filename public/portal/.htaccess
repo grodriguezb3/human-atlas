@@ -1,0 +1,21 @@
+# Entrada de instituciones educativas del atlas.
+#
+# El atlas (la carpeta de arriba) tiene una regla que manda TODO a su
+# index.html; por eso /atlas/portal/ daba 404: la peticion nunca llegaba a este
+# archivo. Aca se apaga esa herencia y se sirve esta pagina tal cual.
+
+# Esta carpeta es una pagina propia, no el atlas: nada de reescrituras.
+RewriteEngine Off
+
+# Al pedir la carpeta, se sirve este index.html.
+DirectoryIndex index.html
+
+# Sin cache: si se corrige la pantalla, se ve al recargar.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|json)$">
+    Header set Cache-Control "no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Nada de listar el contenido de la carpeta.
+Options -Indexes
