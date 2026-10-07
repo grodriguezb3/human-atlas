@@ -31,6 +31,29 @@ type Cuenta = {
 /** Cuando las tablas no tienen permiso, avisan por aquí y se abre esta hoja. */
 export const AVISO_SIN_PERMISO = 'atlas:sin-permiso';
 
+/* El ingreso del PACS es SU formulario, en la raíz del sistema. */
+const ORIGEN_PACS = (() => {
+  try {
+    const h = window.location.hostname;
+    const esLocal = h === 'localhost' || h === '127.0.0.1' || h === '' || /^192\.168\./.test(h);
+    return esLocal ? `http://${h}:8081` : window.location.origin;
+  } catch {
+    return 'https://pacs.ipse.com.ec';
+  }
+})();
+
+/* Si el atlas se abrió DESDE el PACS (su botón "Ver atlas"), la sesión del PACS
+ * ya viene en la cookie: no hay que ofrecer "Iniciar sesión". Solo se ofrece
+ * cuando se entra directo, sin sesión del PACS. */
+const VIENE_DEL_PACS = (() => {
+  try {
+    const v = new URLSearchParams(window.location.search).get('pacs') ?? '';
+    return /^(1|si|sí|true)$/i.test(v);
+  } catch {
+    return false;
+  }
+})();
+
 async function pedirPortal(accion: string, datos?: Record<string, unknown>): Promise<Record<string, any>> {
   const o: RequestInit = {method: datos ? 'POST' : 'GET', headers: {}};
   if (datos) {
@@ -131,7 +154,7 @@ export default function Sesion() {
           <span className="sesion-avatar">{iniciales(nombre) || <UserRound size={16}/>}</span>
           <span className="sesion-nombre">{nombre.split(' ')[0]}</span>
         </Button>
-      ) : (
+      ) : VIENE_DEL_PACS ? null : (
         <Button variant="ghost" onClick={() => { setAbierto(true); setError(''); }}
                 aria-label="Iniciar sesión">
           <UserRound size={18}/><span>Iniciar sesión</span>
@@ -190,7 +213,7 @@ export default function Sesion() {
                   </div>
                 </div>
                 <Button variant="ghost" className="opcion-boton"
-                        onClick={() => { window.location.href = RUTA_BASE; }}>
+                        onClick={() => { window.location.href = ORIGEN_PACS; }}>
                   Entrar al PACS
                 </Button>
               </div>
