@@ -260,6 +260,17 @@ const TOKEN_INSTITUCION = (() => {
   }
 })();
 
+/* Para la pantalla de ingreso y el perfil: la direccion del portal del atlas y
+ * el permiso guardado. */
+export const URL_INSTITUCIONES = (): string => `${API}/Ajax/Aj_AtlasInstitucion.php`;
+export const tokenInstitucion = (): string => TOKEN_INSTITUCION;
+export function guardarTokenInstitucion(t: string): void {
+  try {
+    if (t) localStorage.setItem('atlas_token', t);
+    else localStorage.removeItem('atlas_token');
+  } catch { /* sin almacenamiento: la sesion vive solo en memoria */ }
+}
+
 function conUsuarioApp(cuerpo: URLSearchParams): URLSearchParams {
   if (USER_ID_APP) cuerpo.set('user_id', USER_ID_APP);
   if (TOKEN_INSTITUCION) cuerpo.set('atlas_token', TOKEN_INSTITUCION);
