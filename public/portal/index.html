@@ -5,362 +5,540 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Atlas anatómico · IPSE S.A.</title>
 <style>
-  /* Una sola columna, centrada: la marca arriba (IPSE y, cuando se sabe, la
-     institucion con su logo) y el formulario debajo. */
+  /* ------------------------------------------------------------------
+     Superficie: CONFIGURE (un flujo que se completa paso a paso).
+     Por eso NO hay hero ni todo apilado al centro: panel de contexto a la
+     izquierda, asistente a la derecha, un paso por pantalla.
+     ------------------------------------------------------------------ */
   :root{
     --ipse:#0046ad;
-    --ipse-oscuro:#002f75;
-    --tinta:#1b2733;
-    --gris:#68727d;
-    --linea:#e2e8ee;
+    --ipse-hondo:#002a66;
+    --tinta:#12212f;
+    --gris:#5f6b78;
+    --gris-claro:#9aa5b0;
+    --linea:#e3e9f0;
+    --papel:#ffffff;
+    --fondo:#eef1f5;
+    --ok:#1f7a52;
+    --error:#b23b2e;
+    --aviso:#8a6100;
+    --sombra:0 24px 60px #0b25400f, 0 2px 6px #0b25400a;
+    --curva:cubic-bezier(.22,.61,.36,1);
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,"Segoe UI",Arial,sans-serif;
-       color:var(--tinta);background:#eef1f5;min-height:100dvh}
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,ui-sans-serif,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+       color:var(--tinta);background:var(--fondo);-webkit-font-smoothing:antialiased}
 
-  /* Franja de marca: azul de IPSE de lado a lado, con el escudo al centro. */
-  .franja{background:linear-gradient(160deg,var(--ipse) 0%,var(--ipse-oscuro) 100%);
-          padding:34px 20px 30px;text-align:center;position:relative;overflow:hidden}
-  .franja:after{content:"";position:absolute;left:50%;bottom:-190px;width:420px;height:420px;
-                transform:translateX(-50%);border-radius:50%;background:#ffffff0f}
-  .escudoipse{background:#fff;border-radius:16px;padding:14px 20px;display:inline-flex;align-items:center;
-              justify-content:center;box-shadow:0 10px 30px #001a3f26;position:relative;z-index:1}
-  .escudoipse img{max-width:190px;max-height:56px;display:block}
-  .escudoipse span{font-weight:700;letter-spacing:.16em;font-size:21px;color:var(--ipse)}
-  .franja h1{color:#fff;font-size:22px;font-weight:600;letter-spacing:-.4px;margin:18px 0 6px;position:relative;z-index:1}
-  .franja p{color:#cddef5;font-size:13px;margin:0;position:relative;z-index:1;line-height:1.6}
+  .marco{min-height:100dvh;display:grid;grid-template-columns:minmax(320px,38%) 1fr}
 
-  .contenido{max-width:560px;margin:0 auto;padding:0 18px 46px}
+  /* ---------------- Panel de contexto (marca) ---------------- */
+  .contexto{background:linear-gradient(170deg,var(--ipse) 0%,var(--ipse-hondo) 100%);
+            color:#fff;padding:44px 40px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .contexto .marca{background:#fff;border-radius:14px;padding:12px 16px;display:inline-flex;
+                   align-items:center;justify-content:center;width:fit-content;max-width:200px;position:relative;z-index:2}
+  .contexto .marca img{max-width:170px;max-height:48px;display:block}
+  .contexto .marca span{font-weight:700;letter-spacing:.16em;font-size:19px;color:var(--ipse)}
+  .contexto h1{font-size:27px;font-weight:600;letter-spacing:-.7px;line-height:1.22;margin:26px 0 10px;position:relative;z-index:2}
+  .contexto .bajada{font-size:13.5px;line-height:1.7;color:#c9dcf6;margin:0;max-width:34ch;position:relative;z-index:2}
 
-  /* La institucion, arriba y pegada a la franja. */
-  .institucion{display:none;align-items:center;gap:14px;padding:15px 18px;border-radius:16px;
-               background:#fff;border:1px solid var(--linea);box-shadow:0 14px 34px #0b25400d;
-               margin-top:-24px;position:relative;z-index:2}
-  .institucion.visible{display:flex}
-  .institucion .escudo{width:56px;height:56px;border-radius:13px;background:#fff;border:1px solid var(--linea);
-                       display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
-  .institucion .escudo img{max-width:46px;max-height:46px;object-fit:contain}
-  .institucion .escudo b{color:var(--ipse);font-size:20px;letter-spacing:.04em}
-  .institucion .datos b{display:block;font-size:15px;margin-bottom:2px}
-  .institucion .datos span{font-size:12px;color:var(--gris)}
+  /* La institucion elegida aparece en el panel, con su logo. */
+  .elegida{margin-top:30px;padding:16px;border-radius:16px;background:#ffffff14;border:1px solid #ffffff26;
+           display:flex;gap:14px;align-items:center;position:relative;z-index:2;
+           opacity:0;transform:translateY(10px);transition:opacity .4s var(--curva),transform .4s var(--curva)}
+  .elegida.visible{opacity:1;transform:none}
+  .elegida .escudo{width:58px;height:58px;border-radius:14px;background:#fff;display:flex;align-items:center;
+                   justify-content:center;overflow:hidden;flex-shrink:0}
+  .elegida .escudo img{max-width:46px;max-height:46px;object-fit:contain}
+  .elegida .escudo b{color:var(--ipse);font-size:22px}
+  .elegida .datos b{display:block;font-size:15px;margin-bottom:3px}
+  .elegida .datos span{font-size:12px;color:#c3d6f2}
 
-  .tarjeta{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:26px 24px 24px;
-           box-shadow:0 20px 50px #0b25400d;margin-top:18px}
-  .tarjeta.sinInstitucion{margin-top:20px}
+  .contexto .pie{margin-top:auto;font-size:11.5px;color:#a9c3e6;position:relative;z-index:2;line-height:1.7}
 
-  .pasos{display:flex;gap:6px;margin-bottom:18px}
-  .pasos i{height:3px;flex:1;border-radius:2px;background:#e4e9ee}
-  .pasos i.on{background:var(--ipse)}
+  /* Trazo tenue que da profundidad, sin ser adorno. */
+  .contexto .trazo{position:absolute;right:-120px;bottom:-160px;width:420px;height:420px;border-radius:50%;
+                   border:1px solid #ffffff1f;z-index:1}
+  .contexto .trazo:after{content:"";position:absolute;inset:60px;border-radius:50%;border:1px solid #ffffff14}
+  .contexto .trazo:before{content:"";position:absolute;inset:130px;border-radius:50%;border:1px solid #ffffff0f}
 
-  h2{font-size:17px;font-weight:600;margin:0 0 6px}
-  .ayuda{font-size:12.5px;color:var(--gris);line-height:1.55;margin:0 0 18px}
-  label{display:block;font-size:12px;font-weight:500;color:#4d5a66;margin:0 0 6px}
-  input,select,button{font:inherit;width:100%;border-radius:11px;min-height:50px;padding:0 15px}
-  input,select{border:1px solid var(--linea);background:#fbfcfd;color:var(--tinta);transition:border .15s,background .15s}
-  input:focus,select:focus{outline:none;border-color:var(--ipse);background:#fff;box-shadow:0 0 0 3px #0046ad14}
-  input.codigo{font-size:26px;letter-spacing:10px;text-align:center;font-weight:600;padding-inline:6px}
-  .campo{margin-bottom:14px}
-  button{border:0;background:var(--ipse);color:#fff;font-weight:600;cursor:pointer;margin-top:6px;
-         transition:background .15s}
-  button:hover{background:var(--ipse-oscuro)}
-  button[disabled]{opacity:.5;cursor:default}
-  button.secundario{background:none;color:var(--gris);border:1px solid var(--linea);font-weight:500}
-  button.secundario:hover{background:#f6f8fa;color:var(--tinta)}
-  .separador{display:flex;align-items:center;gap:12px;margin:22px 0 16px;color:#9aa5b0;font-size:11.5px;
-             letter-spacing:.08em;text-transform:uppercase}
-  .separador:before,.separador:after{content:"";height:1px;background:var(--linea);flex:1}
-  .aviso{border-radius:11px;padding:12px 14px;font-size:12.5px;line-height:1.6;margin-top:14px}
-  .aviso.info{background:#eef4fd;color:#2b4a72}
-  .aviso.ok{background:#e9f4ef;color:#255845}
-  .aviso.error{background:#fbeceb;color:#7f2f26}
-  .aviso.lock{background:#fdf6e7;color:#6d5420}
-  .oculto{display:none!important}
+  /* ---------------- Asistente ---------------- */
+  .asistente{display:flex;align-items:center;justify-content:center;padding:38px 26px}
+  .hoja{width:100%;max-width:500px;background:var(--papel);border:1px solid var(--linea);border-radius:20px;
+        box-shadow:var(--sombra);padding:32px 30px 28px;overflow:hidden}
 
-  .estudio{border:1px solid var(--linea);border-radius:12px;padding:13px 15px;background:#fbfcfd;margin-top:10px}
+  .pasos{display:flex;gap:7px;margin-bottom:22px}
+  .pasos i{height:3px;flex:1;border-radius:2px;background:#e9eef4;overflow:hidden;position:relative}
+  .pasos i.on:after{content:"";position:absolute;inset:0;background:var(--ipse);transform-origin:left;
+                    animation:llenar .45s var(--curva) both}
+  @keyframes llenar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  /* Cada paso entra deslizando: continuidad entre pantallas, no teatro. */
+  .paso{display:none}
+  .paso.activo{display:block;animation:entrar .34s var(--curva) both}
+  @keyframes entrar{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+
+  .volver{background:none;border:0;color:var(--gris-claro);font-size:12px;padding:0;margin:0 0 14px;
+          display:inline-flex;align-items:center;gap:6px;cursor:pointer;width:auto;min-height:auto}
+  .volver:hover{color:var(--tinta)}
+
+  h2{font-size:19px;font-weight:600;letter-spacing:-.3px;margin:0 0 7px}
+  .ayuda{font-size:12.5px;color:var(--gris);line-height:1.65;margin:0 0 20px}
+  .ayuda b{color:var(--tinta);font-weight:600}
+
+  label{display:block;font-size:12px;font-weight:500;color:#46535f;margin:0 0 6px}
+  .opcional{color:var(--gris-claro);font-weight:400}
+  input,button{font:inherit;width:100%;border-radius:11px;min-height:50px;padding:0 15px}
+  input{border:1px solid var(--linea);background:#fbfcfe;color:var(--tinta);
+        transition:border-color .16s,background .16s,box-shadow .16s}
+  input:focus{outline:none;border-color:var(--ipse);background:#fff;box-shadow:0 0 0 3px #0046ad14}
+  .campo{margin-bottom:15px}
+  .conPrefijo{display:flex;align-items:stretch;border:1px solid var(--linea);border-radius:11px;background:#fbfcfe;
+              transition:border-color .16s,box-shadow .16s}
+  .conPrefijo:focus-within{border-color:var(--ipse);background:#fff;box-shadow:0 0 0 3px #0046ad14}
+  .conPrefijo input{border:0;background:none;box-shadow:none!important;padding-left:4px}
+  .conPrefijo .sufijo{display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--gris);
+                      border-left:1px solid var(--linea);white-space:nowrap}
+  button{border:0;background:var(--ipse);color:#fff;font-weight:600;cursor:pointer;margin-top:8px;
+         transition:background .16s,transform .12s}
+  button:hover{background:#003c93}
+  button:active{transform:translateY(1px)}
+  button[disabled]{opacity:.5;cursor:default;transform:none}
+  button.texto{background:none;color:var(--ipse);font-weight:600;min-height:44px;margin-top:4px}
+  button.texto:hover{background:#0046ad0f}
+
+  /* Código de 6 casillas */
+  .casillas{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:6px}
+  .casillas input{text-align:center;font-size:22px;font-weight:600;padding:0;min-height:58px}
+  .casillas input.lleno{border-color:var(--ipse);background:#f5f9ff}
+
+  /* Tarjetas de institución */
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:8px;
+           max-height:320px;overflow-y:auto;padding:2px}
+  .opcion{border:1px solid var(--linea);border-radius:15px;background:#fff;padding:16px 12px;text-align:center;
+          cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:11px;
+          transition:border-color .18s,box-shadow .18s,transform .18s var(--curva)}
+  .opcion:hover{border-color:#b9cbe4;transform:translateY(-2px);box-shadow:0 12px 26px #0b25400f}
+  .opcion[aria-pressed="true"]{border-color:var(--ipse);box-shadow:0 0 0 3px #0046ad1a}
+  .opcion .escudo{width:60px;height:60px;border-radius:14px;background:#f6f8fb;border:1px solid var(--linea);
+                  display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .opcion .escudo img{max-width:50px;max-height:50px;object-fit:contain}
+  .opcion .escudo b{color:var(--ipse);font-size:22px}
+  .opcion span{font-size:12.5px;font-weight:500;line-height:1.35;color:#39485a}
+  .buscar{margin-bottom:14px}
+
+  .aviso{border-radius:11px;padding:12px 14px;font-size:12.5px;line-height:1.6;margin-top:15px;display:none}
+  .aviso.ver{display:block;animation:entrar .25s var(--curva) both}
+  .aviso.info{background:#eff5fd;color:#2b4a72}
+  .aviso.ok{background:#eaf5ef;color:var(--ok)}
+  .aviso.error{background:#fceeed;color:var(--error)}
+  .aviso.lock{background:#fdf7e8;color:var(--aviso)}
+
+  .resumen{background:#f6f9fc;border:1px solid var(--linea);border-radius:12px;padding:12px 14px;
+           font-size:12.5px;color:var(--gris);margin-bottom:18px;line-height:1.6}
+  .resumen b{color:var(--tinta)}
+
+  .estudio{border:1px solid var(--linea);border-radius:12px;padding:13px 15px;background:#fbfcfe;margin-top:10px}
   .estudio b{display:block;font-size:14px;margin-bottom:4px}
   .estudio span{font-size:12px;color:var(--gris)}
   .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
   .chip{font-size:11px;background:#eef1f3;color:#4d5a66;border-radius:999px;padding:4px 10px}
-  .encabezado{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}
-  .encabezado .quien{font-size:13px;color:var(--gris)}
-  .encabezado .quien b{display:block;font-size:15px;color:var(--tinta);margin-bottom:2px}
-  .encabezado button{width:auto;padding:0 16px;min-height:42px;margin:0}
+  .encabezado{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+  .encabezado .quien{font-size:12.5px;color:var(--gris)}
+  .encabezado .quien b{display:block;font-size:16px;color:var(--tinta);margin-bottom:2px}
+  .encabezado button{width:auto;padding:0 16px;min-height:42px;margin:0;background:none;color:var(--gris);
+                     border:1px solid var(--linea);font-weight:500}
+  .encabezado button:hover{background:#f6f8fa;color:var(--tinta)}
 
-  .pie{text-align:center;font-size:11.5px;color:#87929d;margin-top:26px;line-height:1.7}
-  .pie b{color:#5b6b78;font-weight:600}
+  @media(max-width:860px){
+    .marco{grid-template-columns:1fr}
+    .contexto{padding:26px 22px 22px}
+    .contexto h1{font-size:22px;margin:16px 0 6px}
+    .contexto .bajada{max-width:none}
+    .elegida{margin-top:18px}
+    .contexto .pie{margin-top:18px}
+    .contexto .trazo{display:none}
+    .asistente{padding:22px 16px 40px}
+    .hoja{border-radius:16px;padding:24px 20px 22px}
+    .rejilla{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*:before,*:after{animation-duration:.001s!important;transition-duration:.001s!important}
+  }
 </style>
 </head>
 <body>
+<div class="marco">
 
-<!-- ============ MARCA (arriba) ============ -->
-<header class="franja">
-  <div class="escudoipse">
-    <img src="/imagenes/ipselogonuevo.jpeg" alt="IPSE S.A."
-         onerror="this.parentNode.innerHTML='<span>IPSE</span>'">
-  </div>
-  <h1>Atlas anatómico por imágenes</h1>
-  <p>Acceso para instituciones educativas</p>
-</header>
-
-<div class="contenido">
-
-  <!-- La institucion que corresponde al correo (su logo y su nombre) -->
-  <div class="institucion" id="tarjetaInstitucion">
-    <div class="escudo" id="escudo"></div>
-    <div class="datos">
-      <b id="nombreInstitucion"></b>
-      <span id="dominioInstitucion"></span>
+  <!-- ================= Contexto ================= -->
+  <aside class="contexto">
+    <div class="marca">
+      <img src="/imagenes/ipselogonuevo.jpeg" alt="IPSE S.A."
+           onerror="this.parentNode.innerHTML='<span>IPSE</span>'">
     </div>
-  </div>
+    <h1>Atlas anatómico por imágenes</h1>
+    <p class="bajada">Acceso para instituciones educativas: estadística real de las regiones anatómicas y estudios anonimizados para la enseñanza.</p>
 
-  <!-- ============ FORMULARIO ============ -->
-  <div class="tarjeta sinInstitucion" id="tarjeta">
-
-    <!-- PASO 1 -->
-    <div id="paso1">
-      <div class="pasos"><i class="on"></i><i></i></div>
-      <h2>Entrar con mi correo institucional</h2>
-      <p class="ayuda">Escriba su correo de la institución. Le enviamos un código de 6 dígitos para crear su cuenta.</p>
-
-      <div class="campo">
-        <label for="sInstitucion">Institución</label>
-        <select id="sInstitucion"><option value="">Elija su institución…</option></select>
+    <div class="elegida" id="elegida">
+      <div class="escudo" id="escudoElegida"><b>?</b></div>
+      <div class="datos">
+        <b id="nombreElegida"></b>
+        <span id="detalleElegida"></span>
       </div>
-
-      <div class="campo">
-        <label for="correo">Correo institucional</label>
-        <input id="correo" type="email" placeholder="nombre@universidad.edu.ec" autocomplete="email">
-      </div>
-
-      <button id="btnCodigo">Enviar el código</button>
-      <div id="msg1"></div>
-
-      <div class="separador">Ya tengo cuenta</div>
-      <div class="campo">
-        <label for="entrarUsuario">Usuario o correo</label>
-        <input id="entrarUsuario" type="text" autocomplete="username">
-      </div>
-      <div class="campo">
-        <label for="entrarClave">Clave</label>
-        <input id="entrarClave" type="password" autocomplete="current-password">
-      </div>
-      <button id="btnEntrar" class="secundario">Entrar</button>
-      <div id="msgEntrar"></div>
     </div>
 
-    <!-- PASO 2 -->
-    <div id="paso2" class="oculto">
-      <div class="pasos"><i class="on"></i><i class="on"></i></div>
-      <h2>Cree su cuenta</h2>
-      <p class="ayuda">Le enviamos un código a <b id="correoDestino"></b>. Vence en 15 minutos.</p>
+    <div class="pie">Desarrollado por IPSE S.A.<br>Los estudios se ven anonimizados: sin nombre, sin cédula y sin fecha exacta.</div>
+    <div class="trazo"></div>
+  </aside>
 
-      <div class="campo">
-        <label for="codigo">Código de 6 dígitos</label>
-        <input id="codigo" class="codigo" type="text" inputmode="numeric" maxlength="6" placeholder="000000">
+  <!-- ================= Asistente ================= -->
+  <section class="asistente">
+    <div class="hoja">
+      <div class="pasos" id="barra"><i></i><i></i><i></i><i></i></div>
+
+      <!-- ---------- 1. Entrar ---------- -->
+      <div class="paso activo" id="pEntrar">
+        <h2>Entrar</h2>
+        <p class="ayuda">Use el usuario o el correo con el que creó su cuenta.</p>
+        <div class="campo">
+          <label for="usuarioLogin">Usuario o correo</label>
+          <input id="usuarioLogin" type="text" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="campo">
+          <label for="claveLogin">Clave</label>
+          <input id="claveLogin" type="password" autocomplete="current-password">
+        </div>
+        <button id="btnLogin">Entrar</button>
+        <button class="texto" id="btnPrimeraVez">¿Primera vez? Cree su cuenta</button>
+        <div class="aviso" id="msgLogin"></div>
       </div>
-      <div class="campo">
-        <label for="usuario">Usuario</label>
-        <input id="usuario" type="text" placeholder="jperez" autocomplete="username">
+
+      <!-- ---------- 2. Institución ---------- -->
+      <div class="paso" id="pInstitucion">
+        <button class="volver" id="vInstitucion">&larr; Volver</button>
+        <h2>Su institución</h2>
+        <p class="ayuda">Elija la institución a la que pertenece.</p>
+        <input class="buscar" id="buscarInstitucion" type="text" placeholder="Buscar institución…" spellcheck="false">
+        <div class="rejilla" id="rejillaInstituciones"></div>
+        <div class="aviso" id="msgInstitucion"></div>
       </div>
-      <div class="campo">
-        <label for="clave">Clave (mínimo 8)</label>
-        <input id="clave" type="password" autocomplete="new-password">
+
+      <!-- ---------- 3. Correo ---------- -->
+      <div class="paso" id="pCorreo">
+        <button class="volver" id="vCorreo">&larr; Cambiar institución</button>
+        <h2>Su correo institucional</h2>
+        <p class="ayuda" id="ayudaCorreo">Escriba su correo. Le enviamos un código de 6 dígitos.</p>
+        <div class="campo">
+          <label for="correoNuevo">Correo</label>
+          <div class="conPrefijo">
+            <input id="correoNuevo" type="text" autocomplete="email" spellcheck="false" placeholder="nombre">
+            <span class="sufijo" id="sufijoDominio">@</span>
+          </div>
+        </div>
+        <button id="btnEnviarCodigo">Enviar el código</button>
+        <div class="aviso" id="msgCorreo"></div>
       </div>
-      <button id="btnCrear">Crear la cuenta y entrar</button>
-      <button id="btnVolver" class="secundario">Volver</button>
-      <div id="msg2"></div>
+
+      <!-- ---------- 4. Código ---------- -->
+      <div class="paso" id="pCodigo">
+        <button class="volver" id="vCodigo">&larr; Cambiar correo</button>
+        <h2>Revise su correo</h2>
+        <p class="ayuda">Enviamos un código a <b id="correoDestino"></b>. Vence en 15 minutos.</p>
+        <div class="casillas" id="casillas">
+          <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+          <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+          <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+        </div>
+        <div class="aviso" id="msgCodigo"></div>
+        <button id="btnVerificar">Verificar el código</button>
+        <button class="texto" id="btnOtroCodigo">Enviar otro código</button>
+      </div>
+
+      <!-- ---------- 5. Sus datos ---------- -->
+      <div class="paso" id="pDatos">
+        <button class="volver" id="vDatos">&larr; Volver</button>
+        <h2>Sus datos</h2>
+        <p class="ayuda">Nombre obligatorio. El teléfono es opcional.</p>
+        <div class="resumen" id="resumen"></div>
+        <div class="campo">
+          <label for="nombrePersona">Nombre y apellido</label>
+          <input id="nombrePersona" type="text" autocomplete="name">
+        </div>
+        <div class="campo">
+          <label for="telefono">Teléfono <span class="opcional">(opcional)</span></label>
+          <input id="telefono" type="tel" inputmode="tel" autocomplete="tel">
+        </div>
+        <div class="campo">
+          <label for="usuarioNuevo">Usuario</label>
+          <input id="usuarioNuevo" type="text" autocomplete="username" spellcheck="false" placeholder="jperez">
+        </div>
+        <div class="campo">
+          <label for="claveNueva">Clave (mínimo 8)</label>
+          <input id="claveNueva" type="password" autocomplete="new-password">
+        </div>
+        <button id="btnCrear">Crear la cuenta y entrar</button>
+        <div class="aviso" id="msgDatos"></div>
+      </div>
+
+      <!-- ---------- 6. Dentro ---------- -->
+      <div class="paso" id="pDentro">
+        <div class="encabezado" style="margin-bottom:20px">
+          <div class="quien"><b id="quien"></b><span id="quienInstitucion"></span></div>
+          <button id="btnSalir">Salir</button>
+        </div>
+        <div class="campo">
+          <label for="limite">Cuántos estudios quiere ver</label>
+          <input id="limite" type="number" value="25" min="1" max="200">
+        </div>
+        <button id="btnEstudios">Ver estudios</button>
+        <div class="aviso" id="msgEstudios"></div>
+        <div id="listaEstudios"></div>
+      </div>
     </div>
-
-    <!-- DENTRO -->
-    <div id="panelDentro" class="oculto">
-      <div class="encabezado">
-        <div class="quien"><b id="quien"></b><span id="quienInstitucion"></span></div>
-        <button id="salir" class="secundario">Salir</button>
-      </div>
-      <div class="campo">
-        <label for="fLimite">Cuántos estudios quiere ver</label>
-        <input id="fLimite" type="number" value="25" min="1" max="200">
-      </div>
-      <button id="btnBuscar">Ver estudios</button>
-      <div id="msgEstudios"></div>
-      <div id="listaEstudios"></div>
-    </div>
-  </div>
-
-  <div class="pie">
-    Los estudios se muestran <b>anonimizados</b>: sin nombre, sin cédula y sin fecha exacta.<br>
-    Cada consulta de una institución queda registrada.<br><br>
-    Desarrollado por <b>IPSE S.A.</b>
-  </div>
+  </section>
 </div>
 
 <script>
-/* La API del atlas. Se puede apuntar a otro lado con ?api=... */
 const API = new URLSearchParams(location.search).get('api')
          || (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
              ? 'http://127.0.0.1:8081/Ajax/Aj_AtlasInstitucion.php'
              : '/Ajax/Aj_AtlasInstitucion.php');
 const $ = id => document.getElementById(id);
 const token = {v: localStorage.getItem('atlas_token') || ''};
-let correoActual = '';
+let institucion = null, correoNuevo = '', codigoVerificado = false;
 
 const TEXTOS = {
-  DOMINIO_NO_REGISTRADO: 'Todavía no está habilitada esa institución. Pídale al administrador del PACS que la dé de alta.',
+  DOMINIO_NO_REGISTRADO: 'Ese correo no es de la institución elegida. Revise el dominio.',
   CORREO_INVALIDO: 'Ese correo no parece válido.',
   CORREO_YA_REGISTRADO: 'Ese correo ya tiene una cuenta: entre con su usuario y clave.',
   NO_SE_PUDO_ENVIAR: 'No pudimos enviar el código. Intente otra vez en un momento.',
   CODIGO_INCORRECTO: 'El código no es el correcto.',
   CODIGO_VENCIDO: 'El código venció. Pida uno nuevo.',
-  DEMASIADOS_INTENTOS: 'Demasiados intentos con ese código. Pida uno nuevo.',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos. Pida un código nuevo.',
+  FALTA_NOMBRE: 'Escriba su nombre y apellido.',
+  TELEFONO_INVALIDO: 'Ese teléfono no parece válido.',
   USUARIO_INVALIDO: 'El usuario necesita al menos 4 letras o números, sin espacios.',
   USUARIO_YA_EXISTE: 'Ese usuario ya está tomado: elija otro.',
   CLAVE_CORTA: 'La clave necesita al menos 8 caracteres.',
   CREDENCIALES: 'Usuario o clave incorrectos.',
-  PENDIENTE_APROBACION: 'Su cuenta todavía no está habilitada.',
-  CUENTA_INACTIVA: 'La cuenta o la institución están desactivadas.'
+  PENDIENTE_APROBACION: 'Su cuenta todavía no está habilitada.'
 };
 
-function aviso(destino, texto, tipo) {
-  destino.innerHTML = texto ? `<div class="aviso ${tipo || 'info'}">${texto}</div>` : '';
+function msj(destino, texto, tipo) {
+  if (!texto) { destino.className = 'aviso'; destino.textContent = ''; return; }
+  destino.className = 'aviso ver ' + (tipo || 'info');
+  destino.textContent = texto;
 }
-function mostrarError(destino, d) {
-  const texto = d.error === 'SIN_CONEXION'
-    ? 'No hay conexión con el servidor.'
-    : (TEXTOS[d.error] || 'No se pudo completar. Intente de nuevo.');
-  aviso(destino, texto, 'error');
+function error(destino, d) {
+  msj(destino, d.error === 'SIN_CONEXION' ? 'No hay conexión con el servidor.'
+      : (TEXTOS[d.error] || 'No se pudo completar. Intente de nuevo.'), 'error');
 }
 async function pedir(accion, datos) {
-  const opciones = {method: datos ? 'POST' : 'GET', headers: {}};
-  if (datos) { opciones.headers['Content-Type'] = 'application/json'; opciones.body = JSON.stringify(datos); }
-  if (token.v) opciones.headers['X-Atlas-Token'] = token.v;
-  try {
-    const r = await fetch(`${API}?accion=${accion}`, opciones);
-    return await r.json();
-  } catch (e) { return {ok: false, error: 'SIN_CONEXION'}; }
+  const o = {method: datos ? 'POST' : 'GET', headers: {}};
+  if (datos) { o.headers['Content-Type'] = 'application/json'; o.body = JSON.stringify(datos); }
+  if (token.v) o.headers['X-Atlas-Token'] = token.v;
+  try { return await (await fetch(`${API}?accion=${accion}`, o)).json(); }
+  catch (e) { return {ok: false, error: 'SIN_CONEXION'}; }
 }
 
-/* ---- La institucion: arriba, con su logo ------------------------------- */
-function pintarInstitucion(i) {
+/* ---- Pasos ------------------------------------------------------------ */
+const PASOS = ['pEntrar', 'pInstitucion', 'pCorreo', 'pCodigo', 'pDatos', 'pDentro'];
+function ir(nombre) {
+  PASOS.forEach(p => $(p).classList.toggle('activo', p === nombre));
+  const barra = $('barra');
+  barra.style.display = (nombre === 'pEntrar' || nombre === 'pDentro') ? 'none' : 'flex';
+  const orden = {pInstitucion: 1, pCorreo: 2, pCodigo: 3, pDatos: 4}[nombre] || 0;
+  Array.prototype.forEach.call(barra.children, (h, i) => h.classList.toggle('on', i < orden));
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ---- La institucion en el panel --------------------------------------- */
+function mostrarElegida(i) {
   const logo = i.logo_url || i.logo;
-  $('escudo').innerHTML = logo
-    ? `<img src="${logo}" alt="" onerror="this.parentNode.innerHTML='<b>${(i.nombre || '?').trim().charAt(0)}</b>'">`
+  $('escudoElegida').innerHTML = logo
+    ? `<img src="${logo}" alt="" onerror="this.parentNode.innerHTML='<b>${(i.nombre||'?').trim().charAt(0)}</b>'">`
     : `<b>${(i.nombre || '?').trim().charAt(0)}</b>`;
-  $('nombreInstitucion').textContent = i.nombre || '';
-  $('dominioInstitucion').textContent = i.dominio ? `Los correos @${i.dominio} entran por aquí` : '';
-  $('tarjetaInstitucion').classList.add('visible');
-  $('tarjeta').classList.remove('sinInstitucion');
+  $('nombreElegida').textContent = i.nombre || '';
+  $('detalleElegida').textContent = i.dominio ? `Correos @${i.dominio}` : '';
+  $('elegida').classList.add('visible');
 }
 
-async function reconocerInstitucion(correo) {
-  if (!correo.includes('@')) return;
-  const d = await pedir('institucion_por_correo', {correo});
-  if (d.ok) { pintarInstitucion(d.institucion); aviso($('msg1'), '', ''); }
-  else if (d.error === 'DOMINIO_NO_REGISTRADO') {
-    $('tarjetaInstitucion').classList.remove('visible');
-    $('tarjeta').classList.add('sinInstitucion');
-    aviso($('msg1'), TEXTOS.DOMINIO_NO_REGISTRADO, 'error');
+/* ---- Instituciones: tarjetas con logo --------------------------------- */
+let todas = [];
+function pintarInstituciones(filtro) {
+  const t = (filtro || '').toLowerCase().trim();
+  const lista = t ? todas.filter(i => i.nombre.toLowerCase().includes(t)) : todas;
+  if (!lista.length) {
+    $('rejillaInstituciones').innerHTML = '';
+    msj($('msgInstitucion'), 'No hay instituciones cargadas todavía. Pídale al administrador del PACS que dé de alta la suya.', 'info');
+    return;
   }
+  msj($('msgInstitucion'), '');
+  $('rejillaInstituciones').innerHTML = lista.map(i => {
+    const logo = i.logo_url || i.logo;
+    return `<button class="opcion" data-id="${i.id}" aria-pressed="false">
+      <span class="escudo">${logo
+        ? `<img src="${logo}" alt="" onerror="this.parentNode.innerHTML='<b>${(i.nombre||'?').trim().charAt(0)}</b>'">`
+        : `<b>${(i.nombre || '?').trim().charAt(0)}</b>`}</span>
+      <span>${i.nombre}</span></button>`;
+  }).join('');
+  Array.prototype.forEach.call($('rejillaInstituciones').children, b => {
+    b.onclick = () => elegirInstitucion(parseInt(b.getAttribute('data-id'), 10));
+  });
+}
+function elegirInstitucion(id) {
+  institucion = todas.find(i => Number(i.id) === id) || null;
+  if (!institucion) return;
+  Array.prototype.forEach.call($('rejillaInstituciones').children,
+    b => b.setAttribute('aria-pressed', b.getAttribute('data-id') === String(id) ? 'true' : 'false'));
+  mostrarElegida(institucion);
+  $('sufijoDominio').textContent = '@' + (institucion.dominio || '');
+  $('ayudaCorreo').innerHTML = `Su correo tiene que terminar en <b>@${institucion.dominio}</b>. Le enviamos un código de 6 dígitos.`;
+  $('correoNuevo').value = '';
+  setTimeout(() => ir('pCorreo'), 160);
 }
 
-/* ---- Selector de institucion ------------------------------------------- */
-async function cargarInstituciones() {
-  const d = await pedir('instituciones');
-  const lista = d.instituciones || [];
-  if (!lista.length) return;
-  $('sInstitucion').innerHTML = '<option value="">Elija su institución…</option>'
-    + lista.map(i => `<option value="${i.id}" data-dominio="${i.dominio || ''}">${i.nombre}</option>`).join('');
-}
+/* ---- Código: 6 casillas ----------------------------------------------- */
+const casillas = Array.prototype.slice.call($('casillas').children);
+casillas.forEach((c, i) => {
+  c.addEventListener('input', () => {
+    c.value = c.value.replace(/\D/g, '');
+    c.classList.toggle('lleno', !!c.value);
+    if (c.value && i < 5) casillas[i + 1].focus();
+  });
+  c.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !c.value && i > 0) casillas[i - 1].focus();
+  });
+  c.addEventListener('paste', e => {
+    const t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!t) return;
+    e.preventDefault();
+    t.split('').forEach((d, k) => { if (casillas[k]) { casillas[k].value = d; casillas[k].classList.add('lleno'); } });
+    casillas[Math.min(t.length, 5)].focus();
+  });
+});
+function leerCodigo() { return casillas.map(c => c.value).join(''); }
+function limpiarCodigo() { casillas.forEach(c => { c.value = ''; c.classList.remove('lleno'); }); }
 
-$('sInstitucion').onchange = function() {
-  const opcion = this.options[this.selectedIndex];
-  const dominio = opcion.getAttribute('data-dominio') || '';
-  if (!dominio) return;
-  const parte = $('correo').value.trim().split('@')[0];
-  $('correo').value = (parte || 'nombre') + '@' + dominio;
-  $('correo').focus();
-  reconocerInstitucion($('correo').value.trim());
+/* ---- 1. Entrar --------------------------------------------------------- */
+$('btnPrimeraVez').onclick = () => ir('pInstitucion');
+$('vInstitucion').onclick = () => ir('pEntrar');
+$('vCorreo').onclick = () => ir('pInstitucion');
+$('vCodigo').onclick = () => ir('pCorreo');
+$('vDatos').onclick = () => ir('pCodigo');
+
+$('btnLogin').onclick = async () => {
+  const quien = $('usuarioLogin').value.trim();
+  if (!quien) { msj($('msgLogin'), 'Escriba su usuario o correo.', 'error'); return; }
+  $('btnLogin').disabled = true;
+  msj($('msgLogin'), 'Entrando…');
+  const d = await pedir('login', {usuario: quien, clave: $('claveLogin').value});
+  $('btnLogin').disabled = false;
+  if (!d.ok) { error($('msgLogin'), d); return; }
+  token.v = d.token; localStorage.setItem('atlas_token', d.token);
+  abrirSesion(d.cuenta, d.acceso_estudios);
 };
 
-$('correo').addEventListener('blur', () => reconocerInstitucion($('correo').value.trim()));
-
-/* ---- Paso 1 ------------------------------------------------------------ */
-$('btnCodigo').onclick = async () => {
-  const correo = $('correo').value.trim();
-  if (!correo.includes('@')) { aviso($('msg1'), 'Escriba su correo institucional.', 'error'); return; }
-  $('btnCodigo').disabled = true;
-  aviso($('msg1'), 'Enviando el código…');
+/* ---- 2/3. Correo ------------------------------------------------------- */
+$('btnEnviarCodigo').onclick = async () => {
+  if (!institucion) { ir('pInstitucion'); return; }
+  const local = $('correoNuevo').value.trim().toLowerCase().replace(/\s/g, '');
+  if (!local) { msj($('msgCorreo'), 'Escriba su correo.', 'error'); return; }
+  const correo = local.includes('@') ? local : `${local}@${institucion.dominio}`;
+  if (!correo.endsWith('@' + institucion.dominio.toLowerCase())) {
+    msj($('msgCorreo'), `El correo tiene que ser de ${institucion.nombre} (@${institucion.dominio}).`, 'error');
+    return;
+  }
+  $('btnEnviarCodigo').disabled = true;
+  msj($('msgCorreo'), 'Enviando el código…');
   const d = await pedir('solicitar_codigo', {correo});
-  $('btnCodigo').disabled = false;
-  if (!d.ok) { mostrarError($('msg1'), d); return; }
-  correoActual = correo;
-  if (d.institucion) pintarInstitucion(d.institucion);
+  $('btnEnviarCodigo').disabled = false;
+  if (!d.ok) { error($('msgCorreo'), d); return; }
+  correoNuevo = correo;
   $('correoDestino').textContent = correo;
-  $('paso1').classList.add('oculto');
-  $('paso2').classList.remove('oculto');
-  $('codigo').focus();
+  limpiarCodigo();
+  msj($('msgCodigo'), '');
+  ir('pCodigo');
+  casillas[0].focus();
 };
 
-/* ---- Paso 2 ------------------------------------------------------------ */
-$('codigo').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, ''); });
-$('btnVolver').onclick = () => { $('paso2').classList.add('oculto'); $('paso1').classList.remove('oculto'); };
+$('btnOtroCodigo').onclick = async () => {
+  msj($('msgCodigo'), 'Enviando otro código…');
+  const d = await pedir('solicitar_codigo', {correo: correoNuevo});
+  if (!d.ok) { error($('msgCodigo'), d); return; }
+  limpiarCodigo();
+  msj($('msgCodigo'), 'Le enviamos un código nuevo.', 'ok');
+  casillas[0].focus();
+};
 
+$('btnVerificar').onclick = async () => {
+  const codigo = leerCodigo();
+  if (codigo.length !== 6) { msj($('msgCodigo'), 'El código tiene 6 números.', 'error'); return; }
+  $('btnVerificar').disabled = true;
+  msj($('msgCodigo'), 'Verificando…');
+  const d = await pedir('verificar_codigo', {correo: correoNuevo, codigo});
+  $('btnVerificar').disabled = false;
+  if (!d.ok) { error($('msgCodigo'), d); return; }
+  codigoVerificado = codigo;
+  $('resumen').innerHTML = `Correo <b>${correoNuevo}</b><br>Institución <b>${institucion.nombre}</b>`;
+  $('usuarioNuevo').value = correoNuevo.split('@')[0].replace(/[^a-z0-9._-]/gi, '').slice(0, 40);
+  msj($('msgCodigo'), '');
+  ir('pDatos');
+  $('nombrePersona').focus();
+};
+
+/* ---- 5. Crear la cuenta ------------------------------------------------ */
 $('btnCrear').onclick = async () => {
-  const datos = {correo: correoActual, codigo: $('codigo').value.trim(),
-                 usuario: $('usuario').value.trim(), clave: $('clave').value};
-  if (datos.codigo.length !== 6) { aviso($('msg2'), 'El código tiene 6 números.', 'error'); return; }
-  if (!datos.usuario || datos.clave.length < 8) { aviso($('msg2'), 'Complete el usuario y una clave de 8 o más.', 'error'); return; }
+  const datos = {
+    correo: correoNuevo, codigo: codigoVerificado,
+    nombre: $('nombrePersona').value.trim(),
+    telefono: $('telefono').value.trim(),
+    usuario: $('usuarioNuevo').value.trim(),
+    clave: $('claveNueva').value
+  };
+  if (!datos.nombre) { msj($('msgDatos'), 'El nombre es obligatorio.', 'error'); return; }
+  if (!datos.usuario || datos.clave.length < 8) {
+    msj($('msgDatos'), 'Complete el usuario y una clave de 8 o más.', 'error'); return;
+  }
   $('btnCrear').disabled = true;
-  aviso($('msg2'), 'Creando su cuenta…');
+  msj($('msgDatos'), 'Creando su cuenta…');
   const d = await pedir('crear_cuenta', datos);
   $('btnCrear').disabled = false;
-  if (!d.ok) { mostrarError($('msg2'), d); return; }
+  if (!d.ok) { error($('msgDatos'), d); return; }
   token.v = d.token; localStorage.setItem('atlas_token', d.token);
   abrirSesion(d.cuenta, d.acceso_estudios);
 };
 
-/* ---- Entrar ------------------------------------------------------------ */
-$('btnEntrar').onclick = async () => {
-  const identifica = $('entrarUsuario').value.trim();
-  if (!identifica) { aviso($('msgEntrar'), 'Escriba su usuario o correo.', 'error'); return; }
-  aviso($('msgEntrar'), 'Entrando…');
-  const d = await pedir('login', {usuario: identifica, clave: $('entrarClave').value});
-  if (!d.ok) { mostrarError($('msgEntrar'), d); return; }
-  token.v = d.token; localStorage.setItem('atlas_token', d.token);
-  abrirSesion(d.cuenta, d.acceso_estudios);
-};
-
-/* ---- Dentro ----------------------------------------------------------- */
+/* ---- 6. Dentro --------------------------------------------------------- */
 function abrirSesion(cuenta, accesoEstudios) {
-  $('paso1').classList.add('oculto');
-  $('paso2').classList.add('oculto');
-  $('panelDentro').classList.remove('oculto');
-  $('quien').textContent = cuenta.usuario || cuenta.nombre || '';
+  $('quien').textContent = cuenta.nombre || cuenta.usuario || '';
   $('quienInstitucion').textContent = cuenta.institucion || '';
+  ir('pDentro');
   if (!accesoEstudios) {
-    $('btnBuscar').disabled = true;
-    aviso($('msgEstudios'),
+    $('btnEstudios').disabled = true;
+    msj($('msgEstudios'),
       'Los estudios todavía no están habilitados para instituciones: falta terminar el borrado '
       + 'de los datos que quedan dentro de las imágenes. Mientras tanto puede usar el atlas anatómico.', 'lock');
   }
 }
 
-$('salir').onclick = async () => {
+$('btnSalir').onclick = async () => {
   await pedir('salir', {});
   localStorage.removeItem('atlas_token'); location.reload();
 };
 
-$('btnBuscar').onclick = async () => {
-  aviso($('msgEstudios'), 'Buscando…');
+$('btnEstudios').onclick = async () => {
+  msj($('msgEstudios'), 'Buscando…');
   $('listaEstudios').innerHTML = '';
-  const d = await pedir('estudios', {limite: parseInt($('fLimite').value, 10) || 25});
+  const d = await pedir('estudios', {limite: parseInt($('limite').value, 10) || 25});
   if (!d.ok) {
-    aviso($('msgEstudios'), (d.error === 'SESION_INVALIDA' || d.error === 'SESION_REQUERIDA')
+    msj($('msgEstudios'), (d.error === 'SESION_INVALIDA' || d.error === 'SESION_REQUERIDA')
       ? 'La sesión venció. Vuelva a entrar.' : 'No se pudo consultar.', 'error');
     return;
   }
-  if (d.habilitado === false) { aviso($('msgEstudios'), d.motivo, 'lock'); return; }
-  if (!d.estudios.length) { aviso($('msgEstudios'), 'No hay estudios.', 'info'); return; }
-  aviso($('msgEstudios'), `${d.total} estudio(s). Datos anonimizados.`, 'ok');
+  if (d.habilitado === false) { msj($('msgEstudios'), d.motivo, 'lock'); return; }
+  if (!d.estudios.length) { msj($('msgEstudios'), 'No hay estudios.', 'info'); return; }
+  msj($('msgEstudios'), `${d.total} estudio(s). Datos anonimizados.`, 'ok');
   $('listaEstudios').innerHTML = d.estudios.map(e => `
     <div class="estudio">
       <b>${e.descripcion || 'Sin descripción'}</b>
@@ -375,10 +553,13 @@ $('btnBuscar').onclick = async () => {
 
 /* ---- Arranque ---------------------------------------------------------- */
 (async () => {
-  await cargarInstituciones();
+  const d = await pedir('instituciones');
+  todas = d.instituciones || [];
+  pintarInstituciones('');
+  $('buscarInstitucion').addEventListener('input', e => pintarInstituciones(e.target.value));
   if (!token.v) return;
-  const d = await pedir('sesion');
-  if (d.ok) abrirSesion(d.cuenta, d.acceso_estudios);
+  const s = await pedir('sesion');
+  if (s.ok) abrirSesion(s.cuenta, s.acceso_estudios);
   else { localStorage.removeItem('atlas_token'); token.v = ''; }
 })();
 </script>
