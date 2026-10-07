@@ -199,10 +199,10 @@
       <!-- ---------- 1. Entrar ---------- -->
       <div class="paso activo" id="pEntrar">
         <h2>Entrar</h2>
-        <p class="ayuda">Use el usuario o el correo con el que creó su cuenta.</p>
+        <p class="ayuda">Use el correo con el que creó su cuenta.</p>
         <div class="campo">
-          <label for="usuarioLogin">Usuario o correo</label>
-          <input id="usuarioLogin" type="text" autocomplete="username" spellcheck="false">
+          <label for="usuarioLogin">Correo</label>
+          <input id="usuarioLogin" type="email" autocomplete="email" spellcheck="false">
         </div>
         <div class="campo">
           <label for="claveLogin">Clave</label>
@@ -269,10 +269,6 @@
           <input id="telefono" type="tel" inputmode="tel" autocomplete="tel">
         </div>
         <div class="campo">
-          <label for="usuarioNuevo">Usuario</label>
-          <input id="usuarioNuevo" type="text" autocomplete="username" spellcheck="false" placeholder="jperez">
-        </div>
-        <div class="campo">
           <label for="claveNueva">Clave (mínimo 8)</label>
           <input id="claveNueva" type="password" autocomplete="new-password">
         </div>
@@ -300,6 +296,9 @@ const API = new URLSearchParams(location.search).get('api')
          || (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
              ? 'http://127.0.0.1:8081/Ajax/Aj_AtlasInstitucion.php'
              : '/Ajax/Aj_AtlasInstitucion.php');
+// El atlas (el muñequito) vive en /atlas/; en local, en el servidor de desarrollo.
+const ATLAS = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? '/atlas/' : '/atlas/';
 const $ = id => document.getElementById(id);
 const token = {v: localStorage.getItem('atlas_token') || ''};
 let institucion = null, correoNuevo = '', codigoVerificado = false;
@@ -478,7 +477,6 @@ $('btnVerificar').onclick = async () => {
   if (!d.ok) { error($('msgCodigo'), d); return; }
   codigoVerificado = codigo;
   $('resumen').innerHTML = `Correo <b>${correoNuevo}</b><br>Institución <b>${institucion.nombre}</b>`;
-  $('usuarioNuevo').value = correoNuevo.split('@')[0].replace(/[^a-z0-9._-]/gi, '').slice(0, 40);
   msj($('msgCodigo'), '');
   ir('pDatos');
   $('nombrePersona').focus();
@@ -490,12 +488,11 @@ $('btnCrear').onclick = async () => {
     correo: correoNuevo, codigo: codigoVerificado,
     nombre: $('nombrePersona').value.trim(),
     telefono: $('telefono').value.trim(),
-    usuario: $('usuarioNuevo').value.trim(),
     clave: $('claveNueva').value
   };
   if (!datos.nombre) { msj($('msgDatos'), 'El nombre es obligatorio.', 'error'); return; }
-  if (!datos.usuario || datos.clave.length < 8) {
-    msj($('msgDatos'), 'Complete el usuario y una clave de 8 o más.', 'error'); return;
+  if (datos.clave.length < 8) {
+    msj($('msgDatos'), 'La clave necesita 8 caracteres o más.', 'error'); return;
   }
   $('btnCrear').disabled = true;
   msj($('msgDatos'), 'Creando su cuenta…');
@@ -517,7 +514,9 @@ function abrirSesion(cuenta, accesoEstudios) {
       + 'Pídale al administrador del PACS que los habilite.', 'lock');
     return;
   }
-  cargarEstudios();   // entra y ve los estudios, sin preguntar nada
+  // La idea es que entre al atlas (el muñequito), no a una lista: se lleva el
+  // permiso en la direccion y el atlas lo reconoce.
+  location.href = ATLAS + '?atlas_token=' + encodeURIComponent(token.v);
 }
 
 $('btnSalir').onclick = async () => {
