@@ -560,6 +560,14 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
           )}
 
           {error && <p className="ipse-note ipse-error">{error}</p>}
+          {/* Sin permiso, el aviso trae su boton: abre la hoja de ingreso
+              (mismo evento que escucha sesion.tsx). */}
+          {error && /sesi[oó]n|permiso/i.test(error) && (
+            <button type="button" className="ipse-entrar"
+                    onClick={() => window.dispatchEvent(new CustomEvent('atlas:sin-permiso'))}>
+              Iniciar sesión
+            </button>
+          )}
 
           {/* --- dos columnas: el diagnostico a la izquierda y los estudios a
                la derecha. Los dos respetan los filtros de sexo, edad y tipo. --- */}

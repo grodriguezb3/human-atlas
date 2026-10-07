@@ -616,3 +616,11 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
   .perfil-datos{grid-template-columns:1fr;gap:4px 0}
   .perfil-datos dd{text-align:left;margin-bottom:8px}
 }
+
+/* El boton que acompaña al aviso de "sin permiso" en las tablas: lleva al
+   ingreso. Misma tinta del atlas, para que se vea como parte de la casa. */
+.ipse-entrar{margin-top:10px;min-height:42px;padding:0 18px;border-radius:9px;background:#263b48;color:#fff;
+  font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .16s,transform .12s}
+.ipse-entrar:hover{background:#1d2e39}
+.ipse-entrar:active{transform:translateY(1px)}
