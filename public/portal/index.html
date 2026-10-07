@@ -286,11 +286,8 @@
           <div class="quien"><b id="quien"></b><span id="quienInstitucion"></span></div>
           <button id="btnSalir">Salir</button>
         </div>
-        <div class="campo">
-          <label for="limite">Cuántos estudios quiere ver</label>
-          <input id="limite" type="number" value="25" min="1" max="200">
-        </div>
-        <button id="btnEstudios">Ver estudios</button>
+        <h2>Estudios</h2>
+        <p class="ayuda">Estudios anonimizados de la institución. Sin nombre, sin cédula y sin fecha exacta.</p>
         <div class="aviso" id="msgEstudios"></div>
         <div id="listaEstudios"></div>
       </div>
@@ -515,11 +512,12 @@ function abrirSesion(cuenta, accesoEstudios) {
   $('quienInstitucion').textContent = cuenta.institucion || '';
   ir('pDentro');
   if (!accesoEstudios) {
-    $('btnEstudios').disabled = true;
     msj($('msgEstudios'),
-      'Los estudios todavía no están habilitados para instituciones: falta terminar el borrado '
-      + 'de los datos que quedan dentro de las imágenes. Mientras tanto puede usar el atlas anatómico.', 'lock');
+      'Los estudios todavía no están habilitados para esta institución. '
+      + 'Pídale al administrador del PACS que los habilite.', 'lock');
+    return;
   }
+  cargarEstudios();   // entra y ve los estudios, sin preguntar nada
 }
 
 $('btnSalir').onclick = async () => {
@@ -527,17 +525,17 @@ $('btnSalir').onclick = async () => {
   localStorage.removeItem('atlas_token'); location.reload();
 };
 
-$('btnEstudios').onclick = async () => {
-  msj($('msgEstudios'), 'Buscando…');
+async function cargarEstudios() {
+  msj($('msgEstudios'), 'Cargando los estudios…');
   $('listaEstudios').innerHTML = '';
-  const d = await pedir('estudios', {limite: parseInt($('limite').value, 10) || 25});
+  const d = await pedir('estudios', {limite: 50});
   if (!d.ok) {
     msj($('msgEstudios'), (d.error === 'SESION_INVALIDA' || d.error === 'SESION_REQUERIDA')
       ? 'La sesión venció. Vuelva a entrar.' : 'No se pudo consultar.', 'error');
     return;
   }
   if (d.habilitado === false) { msj($('msgEstudios'), d.motivo, 'lock'); return; }
-  if (!d.estudios.length) { msj($('msgEstudios'), 'No hay estudios.', 'info'); return; }
+  if (!d.estudios.length) { msj($('msgEstudios'), 'Todavía no hay estudios.', 'info'); return; }
   msj($('msgEstudios'), `${d.total} estudio(s). Datos anonimizados.`, 'ok');
   $('listaEstudios').innerHTML = d.estudios.map(e => `
     <div class="estudio">
@@ -549,7 +547,7 @@ $('btnEstudios').onclick = async () => {
         ${e.grupo_edad ? `<span class="chip">${e.grupo_edad} años</span>` : ''}
       </div>
     </div>`).join('');
-};
+}
 
 /* ---- Arranque ---------------------------------------------------------- */
 (async () => {
