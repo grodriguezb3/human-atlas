@@ -243,8 +243,26 @@ export const USER_ID_APP = (() => {
 export const ES_APP = USER_ID_APP !== '';
 
 /** Anade el identificador de la app (si viene) al cuerpo de una peticion. */
+/* PERMISO DE INSTITUCIÓN EDUCATIVA: el portal entrega la cuenta con
+ * ?atlas_token=... ; se guarda y viaja en cada consulta, igual que el user_id
+ * de la app. La puerta del PACS sigue funcionando exactamente igual. */
+const TOKEN_INSTITUCION = (() => {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const v = (q.get('atlas_token') ?? '').trim();
+    if (v) {
+      localStorage.setItem('atlas_token', v);
+      return v;
+    }
+    return (localStorage.getItem('atlas_token') ?? '').trim();
+  } catch {
+    return '';
+  }
+})();
+
 function conUsuarioApp(cuerpo: URLSearchParams): URLSearchParams {
   if (USER_ID_APP) cuerpo.set('user_id', USER_ID_APP);
+  if (TOKEN_INSTITUCION) cuerpo.set('atlas_token', TOKEN_INSTITUCION);
   return cuerpo;
 }
 
