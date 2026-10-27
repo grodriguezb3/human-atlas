@@ -13,9 +13,11 @@ import {
   REGION_ES,
   REGION_SIN_MODELO,
   buscarDiagnostico,
+  canjearCodigoAnonimo,
   cargarEstudiosEstructura,
   cargarRegiones,
   claveFiltros,
+  crearCodigoAnonimo,
   generarLinkAnonimo,
   pedirVerImagenes,
   edadTexto,
@@ -23,9 +25,12 @@ import {
   numero,
   porcentaje,
   regionesDeEstructura,
+  revocarCodigoAnonimo,
   statsDeRegion,
+  tokenInstitucion,
   type DemografiaEdad,
   type DemografiaSexo,
+  type CodigoAnonimo,
   type FiltrosAtlas,
   type RegionStats,
   type RespuestaEstructura,
@@ -287,6 +292,15 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
   /** Se usa mientras se trae el siguiente bloque de la lista. */
   const [cargandoMas, setCargandoMas] = useState(false);
 
+  /* Compartir anónimo por código: solo cuentas de institución educativa. */
+  const esInstitucion = !!tokenInstitucion();
+  const [codigoIngresado, setCodigoIngresado] = useState('');
+  const [canjeandoCodigo, setCanjeandoCodigo] = useState(false);
+  const [errorCodigo, setErrorCodigo] = useState('');
+  const [compartiendo, setCompartiendo] = useState('');
+  const [codigoCompartido, setCodigoCompartido] = useState<CodigoAnonimo | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
   /* 1) A que region de IPSE PACS pertenece esta estructura */
   useEffect(() => {
     let vivo = true;
@@ -390,6 +404,82 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
       });
   };
 
+  /* Abre el visor a partir de un código de 10 minutos (solo instituciones). */
+  const abrirConCodigo = async () => {
+    const codigo = codigoIngresado.trim();
+    if (!codigo || canjeandoCodigo) return;
+    setCanjeandoCodigo(true);
+    setErrorCodigo('');
+    const ventana = window.open('', '_blank');
+    try {
+      const r = await canjearCodigoAnonimo(codigo);
+      if (ventana) {
+        ventana.location.replace(r.url);
+      } else {
+        window.open(r.url, '_blank', 'noopener');
+      }
+      setCodigoIngresado('');
+    } catch (e) {
+      if (ventana) ventana.close();
+      setErrorCodigo((e as Error).message);
+    } finally {
+      setCanjeandoCodigo(false);
+    }
+  };
+
+  /* Crea el código para que el docente lo comparta con sus estudiantes. */
+  const compartirEstudio = async (studyUid: string) => {
+    if (!esInstitucion || compartiendo) return;
+    setCompartiendo(studyUid);
+    setError('');
+    setCopiado(false);
+    try {
+      const c = await crearCodigoAnonimo(studyUid);
+      setCodigoCompartido(c);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCompartiendo('');
+    }
+  };
+
+  const copiarCodigo = async () => {
+    if (!codigoCompartido) return;
+    try {
+      await navigator.clipboard.writeText(
+        codigoCompartido.codigoVisible || codigoCompartido.codigo
+      );
+      setCopiado(true);
+      window.setTimeout(() => setCopiado(false), 1800);
+    } catch {
+      // Fallback para HTTP/LAN donde navigator.clipboard puede no existir.
+      try {
+        const area = document.createElement('textarea');
+        area.value = codigoCompartido.codigoVisible || codigoCompartido.codigo;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+        setCopiado(true);
+        window.setTimeout(() => setCopiado(false), 1800);
+      } catch {
+        setCopiado(false);
+      }
+    }
+  };
+
+  const revocarCompartido = async () => {
+    if (!codigoCompartido) return;
+    try {
+      await revocarCodigoAnonimo(codigoCompartido.id);
+      setCodigoCompartido(null);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
   const stat = statsConFechas ?? (regionElegida ? statsDeRegion(regionElegida) : undefined);
   const sinModelo = regiones.some(r => REGION_SIN_MODELO.includes(r));
 
@@ -466,6 +556,38 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
               onFiltros?.(f);
             }}
           />
+
+          {/* Código anónimo: solo para cuentas de institución educativa. */}
+          {esInstitucion && (
+            <div className="ipse-codigo-buscar">
+              <label htmlFor="ipse-codigo-input">¿Tienes un código anónimo?</label>
+              <div className="ipse-codigo-fila">
+                <input
+                  id="ipse-codigo-input"
+                  value={codigoIngresado}
+                  maxLength={9}
+                  placeholder="ABCD-EFGH"
+                  autoComplete="off"
+                  spellCheck={false}
+                  onChange={e => setCodigoIngresado(e.target.value.toUpperCase())}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void abrirConCodigo();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={canjeandoCodigo || codigoIngresado.trim() === ''}
+                  onClick={() => void abrirConCodigo()}
+                >
+                  {canjeandoCodigo ? 'Abriendo…' : 'Abrir'}
+                </button>
+              </div>
+              {errorCodigo && <p className="ipse-codigo-error">{errorCodigo}</p>}
+            </div>
+          )}
 
           {/* El filtro de fechas es general: aplica a las dos columnas de abajo. */}
           <FiltroFechas
@@ -617,14 +739,27 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                     <span className="ipse-estudio-fecha">{fechaCorta(e.fecha)}</span>
                     <i>{e.descripcion}</i>
                     {e.study_uid && (
-                      <button
-                        type="button"
-                        className="ipse-ver-imagenes"
-                        disabled={abriendo === e.study_uid}
-                        onClick={() => abrirImagenes(e.study_uid as string, (e.orthanc_uid as string) ?? '')}
-                      >
-                        {abriendo === e.study_uid ? 'Abriendo…' : 'Ver imágenes'}
-                      </button>
+                      <div className="ipse-acciones-estudio">
+                        <button
+                          type="button"
+                          className="ipse-ver-imagenes"
+                          disabled={abriendo === e.study_uid}
+                          onClick={() => abrirImagenes(e.study_uid as string, (e.orthanc_uid as string) ?? '')}
+                        >
+                          {abriendo === e.study_uid ? 'Abriendo…' : 'Ver imágenes'}
+                        </button>
+                        {esInstitucion && (
+                          <button
+                            type="button"
+                            className="ipse-ver-imagenes ipse-compartir-codigo"
+                            disabled={compartiendo === e.study_uid}
+                            onClick={() => void compartirEstudio(e.study_uid as string)}
+                            title="Compartir con un código anónimo de 10 minutos"
+                          >
+                            {compartiendo === e.study_uid ? 'Generando…' : 'Compartir'}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </li>
                 ))}
@@ -649,6 +784,38 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
           </div>
           </div>
         </>
+      )}
+
+      {/* Modal del código recién creado. */}
+      {codigoCompartido && (
+        <div className="ipse-codigo-modal" role="dialog" aria-modal="true" aria-labelledby="ipse-codigo-titulo">
+          <div className="ipse-codigo-card">
+            <h3 id="ipse-codigo-titulo">Código anónimo</h3>
+            <p>
+              Compártelo con tus estudiantes. Vence en {codigoCompartido.minutos} minutos
+              y sirve para varios dispositivos de esta institución.
+            </p>
+            <strong className="ipse-codigo">
+              {codigoCompartido.codigoVisible || codigoCompartido.codigo}
+            </strong>
+            <small>
+              {codigoCompartido.expiraEn
+                ? `Vence a las ${new Date(codigoCompartido.expiraEn.replace(' ', 'T')).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}`
+                : ''}
+            </small>
+            <div className="ipse-codigo-acciones">
+              <button type="button" onClick={() => void copiarCodigo()}>
+                {copiado ? 'Copiado' : 'Copiar'}
+              </button>
+              <button type="button" className="secundario" onClick={() => void revocarCompartido()}>
+                Revocar
+              </button>
+              <button type="button" className="secundario" onClick={() => setCodigoCompartido(null)}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

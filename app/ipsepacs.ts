@@ -609,6 +609,90 @@ export async function generarLinkAnonimo(studyUid: string): Promise<string> {
   return j.url;
 }
 
+/* ------------------- COMPARTIR ANONIMO POR CODIGO ------------------- */
+
+const URL_COMPARTIR_ANONIMO = `${API}/Ajax/Aj_CompartirAnonimo.php`;
+
+const ERRORES_CODIGO: Record<string, string> = {
+  SESION_INVALIDA: 'Inicia sesión con tu cuenta de institución educativa.',
+  ESTUDIOS_NO_HABILITADOS: 'Su institución todavía no tiene habilitados los estudios.',
+  FALTA_ESTUDIO: 'No se indicó el estudio.',
+  ESTUDIO_NO_ENCONTRADO: 'No se encontró el estudio en el PACS.',
+  CODIGO_INVALIDO: 'Código inválido. Revísalo o pide uno nuevo.',
+  CODIGO_EXPIRADO: 'El código venció. Pide uno nuevo.',
+  CODIGO_AGOTADO: 'El código ya no tiene aperturas disponibles.',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos. Espera un minuto y vuelve a probar.',
+  NO_SE_PUDO_CREAR: 'No se pudo crear el código. Intenta otra vez.',
+  NO_SE_PUDO_CANJEAR: 'No se pudo abrir el estudio. Intenta otra vez.',
+  NO_SE_PUDO_REVOCAR: 'No se pudo revocar el código.',
+};
+
+export type CodigoAnonimo = {
+  id: number;
+  codigo: string;
+  codigoVisible: string;
+  expiraEn: string;
+  minutos: number;
+  maxUsos: number;
+};
+
+async function postCompartirAnonimo(datos: Record<string, string>): Promise<any> {
+  if (!TOKEN_INSTITUCION) {
+    throw new Error(ERRORES_CODIGO.SESION_INVALIDA);
+  }
+  const cuerpo = new URLSearchParams({
+    ...datos,
+    atlas_token: TOKEN_INSTITUCION,
+  });
+  const r = await fetch(URL_COMPARTIR_ANONIMO, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: cuerpo.toString(),
+  });
+  let j: any = null;
+  try {
+    j = await r.json();
+  } catch {
+    throw new Error('No se pudo conectar con el servidor.');
+  }
+  if (!j || j.ok !== true) {
+    const clave = String(j?.error ?? '');
+    throw new Error(ERRORES_CODIGO[clave] ?? 'No se pudo completar la operación.');
+  }
+  return j;
+}
+
+/** Crea un código de 10 minutos para compartir el estudio con la institución. */
+export async function crearCodigoAnonimo(studyUid: string): Promise<CodigoAnonimo> {
+  const j = await postCompartirAnonimo({
+    Requerimiento: 'Crear',
+    study_uid: studyUid,
+  });
+  return {
+    id: Number(j.id ?? 0),
+    codigo: String(j.codigo ?? ''),
+    codigoVisible: String(j.codigo_visible ?? j.codigo ?? ''),
+    expiraEn: String(j.expira_en ?? ''),
+    minutos: Number(j.minutos ?? 10),
+    maxUsos: Number(j.max_usos ?? 50),
+  };
+}
+
+/** Canjea un código y devuelve la URL del visor anónimo. */
+export async function canjearCodigoAnonimo(codigo: string): Promise<{ url: string; expiraEn: string }> {
+  const j = await postCompartirAnonimo({
+    Requerimiento: 'Canjear',
+    codigo,
+  });
+  return { url: String(j.url ?? ''), expiraEn: String(j.expira_en ?? '') };
+}
+
+/** Revoca un código ya creado. */
+export async function revocarCodigoAnonimo(id: number): Promise<void> {
+  await postCompartirAnonimo({ Requerimiento: 'Revocar', id: String(id) });
+}
+
 /* ------------------------------ formato ------------------------------ */
 
 /* El atlas es anonimo: no existe (ni se muestra) el nombre del paciente. */
