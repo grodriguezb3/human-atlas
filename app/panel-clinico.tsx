@@ -728,7 +728,16 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                la derecha. Los dos respetan los filtros de sexo, edad y tipo. --- */}
           <div className="ipse-dos-columnas">
           <div className="ipse-columna">
-          <BuscarDiagnostico filtros={filtros} slug={regionElegida} desde={desde} hasta={hasta} onAbrir={abrirImagenes} />
+          <BuscarDiagnostico
+            filtros={filtros}
+            slug={regionElegida}
+            desde={desde}
+            hasta={hasta}
+            onAbrir={abrirImagenes}
+            puedeCompartir={esInstitucion}
+            compartiendo={compartiendo}
+            onCompartir={uid => void compartirEstudio(uid)}
+          />
           </div>
           <div className="ipse-columna">
           {!cargando && datos && datos.estudios.length > 0 && (
@@ -740,8 +749,8 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                 </em>
               </h4>
               <ul className="ipse-lista">
-                {datos.estudios.map((e, i) => (
-                  <li key={`${e.id_study}-${i}`}>
+                {datos.estudios.map(e => (
+                  <li key={String(e.id_study)}>
                     {/* Atlas anonimo: sin nombre ni cedula; fecha, edad, sexo y tipo */}
                     <span className="ipse-paciente-datos">
                       <i className={e.sexo === 'Femenino' ? 'es-f' : e.sexo === 'Masculino' ? 'es-m' : ''}>
@@ -752,6 +761,11 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                     </span>
                     <span className="ipse-estudio-fecha">{fechaCorta(e.fecha)}</span>
                     <i>{e.descripcion}</i>
+                    {e.sin_clasificar ? (
+                      <em className="ipse-sin-clasificar" title="Sin región anatómica; aparece en todas las estructuras">
+                        Sin clasificar
+                      </em>
+                    ) : null}
                     {e.study_uid && (
                       <div className="ipse-acciones-estudio">
                         <button
@@ -959,7 +973,16 @@ function FiltroFechas({
   );
 }
 
-function BuscarDiagnostico({filtros, slug, desde, hasta, onAbrir}: {filtros: FiltrosAtlas; slug: string; desde: string; hasta: string; onAbrir: (u: string, o: string) => void}) {
+function BuscarDiagnostico({filtros, slug, desde, hasta, onAbrir, puedeCompartir, compartiendo, onCompartir}: {
+  filtros: FiltrosAtlas;
+  slug: string;
+  desde: string;
+  hasta: string;
+  onAbrir: (u: string, o: string) => void;
+  puedeCompartir: boolean;
+  compartiendo: string;
+  onCompartir: (u: string) => void;
+}) {
   /** Los diagnosticos que se estan buscando a la vez (se exigen todos). */
   const [terminos, setTerminos] = useState<string[]>([]);
   /** Lo que se esta escribiendo, todavia sin agregar. */
@@ -1141,17 +1164,35 @@ function BuscarDiagnostico({filtros, slug, desde, hasta, onAbrir}: {filtros: Fil
                   <span className="ipse-diag-meta">
                     {edadTexto(e.edad)} · {e.sexo === 'M' ? 'Masculino' : e.sexo === 'F' ? 'Femenino' : '—'} · {e.modalidad}
                   </span>
+                  {e.sin_clasificar ? (
+                    <span className="ipse-diag-badge ipse-diag-suave" title="Sin región anatómica; aparece en cualquier estructura">
+                      Sin clasificar
+                    </span>
+                  ) : null}
                 </div>
                 <div className="ipse-diag-desc-fila">
                   <p className="ipse-diag-desc">{e.descripcion}</p>
-                  <button
-                    type="button"
-                    className="ipse-diag-ver"
-                    onClick={() => onAbrir(e.study_uid, e.orthanc_uid)}
-                    title="Abrir las imágenes de este estudio"
-                  >
-                    <Eye size={12} /> Ver imágenes
-                  </button>
+                  <div className="ipse-acciones-estudio">
+                    <button
+                      type="button"
+                      className="ipse-diag-ver"
+                      onClick={() => onAbrir(e.study_uid, e.orthanc_uid)}
+                      title="Abrir las imágenes de este estudio"
+                    >
+                      <Eye size={12} /> Ver imágenes
+                    </button>
+                    {puedeCompartir && e.study_uid && (
+                      <button
+                        type="button"
+                        className="ipse-diag-ver ipse-compartir-codigo"
+                        disabled={compartiendo === e.study_uid}
+                        onClick={() => onCompartir(e.study_uid)}
+                        title="Compartir con un código anónimo de 10 minutos"
+                      >
+                        {compartiendo === e.study_uid ? 'Generando…' : 'Compartir'}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {e.extracto !== '' && (
                   <p className="ipse-diag-extracto">…{resaltar(e.extracto, terminos.join(' '))}…</p>

@@ -64,6 +64,8 @@ export interface EstudioClinico {
   // Identificador interno de Orthanc: lo usa la APP movil para abrir su galeria.
   orthanc_uid?: string | null;
   id_study: number | string | null;
+  /** 1 = estudio sin region anatomica; aparece en cualquier estructura. */
+  sin_clasificar?: number;
 }
 
 /** Filtros del atlas. El atlas es ANONIMO por diseno: nunca se piden ni se
@@ -469,6 +471,7 @@ export type EstudioReciente = {
   fecha: string;
   study_uid: string;
   orthanc_uid: string;
+  sin_clasificar?: number;
 };
 
 export type RespuestaRecientes = {
@@ -522,6 +525,7 @@ export type EstudioDiagnostico = {
   /** Identificadores para abrir el estudio en el visor (enlace anonimo). */
   study_uid: string;
   orthanc_uid: string;
+  sin_clasificar?: number;
 };
 
 export type RespuestaDiagnostico = {

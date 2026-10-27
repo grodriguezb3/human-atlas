@@ -112,6 +112,14 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .ipse-acciones-estudio{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px}
 .ipse-acciones-estudio .ipse-ver-imagenes{margin-top:0}
 .ipse-compartir-codigo{background:#fff}
+/* Un estudio sin region anatomica aparece en cualquier estructura; se marca
+   para que no parezca que pertenece a la parte del cuerpo seleccionada. */
+.ipse-sin-clasificar{
+  display:inline-block;font-style:normal;font-size:9.5px;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase;color:#5b6a80;
+  background:#eef3fb;border:1px solid #dbe6f7;border-radius:5px;
+  padding:2px 6px;white-space:nowrap;margin-top:2px;
+}
 .ipse-codigo-buscar{grid-column:1/-1;margin-top:2px;padding:10px 11px;border:1px solid #dbe6f7;border-radius:10px;background:#f7faff;display:flex;flex-direction:column;gap:6px}
 .ipse-codigo-buscar label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:#4b5b73}
 .ipse-codigo-fila{display:flex;gap:8px;align-items:center}
