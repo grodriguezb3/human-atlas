@@ -593,6 +593,11 @@ export async function generarLinkAnonimo(studyUid: string): Promise<string> {
     anonimo: '1',         // sin datos del paciente
     horas: '24',
   });
+  // Si el atlas lo usa una institución educativa, el backend guarda su
+  // id_institucion en el enlace para mostrar su imagen en el visor.
+  if (TOKEN_INSTITUCION) {
+    cuerpo.set('atlas_token', TOKEN_INSTITUCION);
+  }
   const r = await fetch(`${API}/Ajax/Aj_CompartirLinks.php`, {
     method: 'POST',
     credentials: 'include',
