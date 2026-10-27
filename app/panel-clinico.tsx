@@ -558,7 +558,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
           />
 
           {/* Código anónimo: solo para cuentas de institución educativa. */}
-          {esInstitucion && (
+          {esInstitucion ? (
             <div className="ipse-codigo-buscar">
               <label htmlFor="ipse-codigo-input">¿Tienes un código anónimo?</label>
               <div className="ipse-codigo-fila">
@@ -586,6 +586,20 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                 </button>
               </div>
               {errorCodigo && <p className="ipse-codigo-error">{errorCodigo}</p>}
+            </div>
+          ) : (
+            <div className="ipse-codigo-buscar ipse-codigo-institucion">
+              <label>Compartir por código anónimo</label>
+              <p>
+                Inicia sesión con una cuenta de institución educativa para crear o
+                ingresar códigos de 10 minutos.
+              </p>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('atlas:sin-permiso'))}
+              >
+                Entrar como institución
+              </button>
             </div>
           )}
 
