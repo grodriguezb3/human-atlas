@@ -435,6 +435,25 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
         </div>
       )}
 
+      {/* Regiones que el modelo masculino no incluye: obstetrico, mama,
+          prostata, tiroides. Los estudios SI existen; se abren desde aqui
+          sin depender de una estructura 3D que no esta en el modelo. */}
+      <div className="ipse-regiones" style={{ marginTop: 2 }}>
+        <span style={{ fontSize: 11, color: '#6a7a92', alignSelf: 'center', marginRight: 4 }}>
+          Sin modelo 3D:
+        </span>
+        {REGION_SIN_MODELO.map(slug => (
+          <button
+            key={slug}
+            type="button"
+            className={`ipse-chip ${slug === regionElegida ? 'on' : ''}`}
+            onClick={() => setRegionElegida(slug)}
+          >
+            {REGION_ES[slug] ?? slug}
+          </button>
+        ))}
+      </div>
+
       {regionElegida && (
         <>
           {/* --- filtros: sexo, rango de edad y tipo de estudio --- */}
@@ -620,7 +639,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                   {cargandoMas ? 'Cargando…' : 'Mostrar 10 más'}
                 </button>
               )}
-              {onAbrirRegion && (
+              {onAbrirRegion && !sinModelo && (
                 <button type="button" className="ipse-abrir" onClick={() => onAbrirRegion(regionElegida)}>
                   Ver la región completa en el ATLAS <ChevronRight size={13} />
                 </button>
