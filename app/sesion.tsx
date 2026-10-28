@@ -76,6 +76,20 @@ async function pedirPortal(accion: string, datos?: Record<string, unknown>): Pro
   }
 }
 
+/** El token de institucion vive en la URL (?atlas_token=...). Al entrar o salir
+ *  hay que actualizar la URL ANTES de recargar; si no, el token viejo de la URL
+ *  pisa el nuevo de localStorage y la sesion queda invalida otra vez. */
+function actualizarTokenUrl(token: string) {
+  try {
+    const url = new URL(window.location.href);
+    if (token) url.searchParams.set('atlas_token', token);
+    else url.searchParams.delete('atlas_token');
+    window.history.replaceState({}, '', url.toString());
+  } catch {
+    /* sin history API: se conserva la URL */
+  }
+}
+
 const iniciales = (nombre: string) =>
   nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('');
 
@@ -105,7 +119,10 @@ export default function Sesion() {
       const d = await pedirPortal('sesion');
       if (!vivo) return;
       if (d.ok) setCuenta(d.cuenta || {});
-      else { guardarTokenInstitucion(''); }
+      else {
+        guardarTokenInstitucion('');
+        actualizarTokenUrl('');
+      }
       setRevisando(false);
     })();
     return () => { vivo = false; };
@@ -130,6 +147,7 @@ export default function Sesion() {
       return;
     }
     guardarTokenInstitucion(d.token || '');
+    actualizarTokenUrl(d.token || '');
     setCuenta(d.cuenta || {});
     setClave('');
     // Con el permiso nuevo, las tablas se recargan solas en la próxima consulta.
@@ -139,6 +157,7 @@ export default function Sesion() {
   const salir = async () => {
     await pedirPortal('salir', {});
     guardarTokenInstitucion('');
+    actualizarTokenUrl('');
     setCuenta(null);
     setAbierto(false);
     window.location.reload();
