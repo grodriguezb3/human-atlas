@@ -704,7 +704,11 @@ export async function revocarCodigoAnonimo(id: number): Promise<void> {
 
 export function fechaCorta(f: string | null): string {
   if (!f) return '';
-  const d = new Date(f);
+  /* Las fechas del Atlas vienen como YYYY-MM-DD (solo fecha). `new Date('2026-10-23')`
+     las interpreta como UTC medianoche y en Ecuador (UTC-5) las muestra como el
+     dia anterior. Se fuerza medianoche LOCAL para no correr la fecha. */
+  const soloFecha = /^\d{4}-\d{2}-\d{2}$/.test(f);
+  const d = new Date(soloFecha ? `${f}T00:00:00` : f);
   if (Number.isNaN(d.getTime())) return f;
   return d.toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' });
 }
