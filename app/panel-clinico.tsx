@@ -311,7 +311,10 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
       .then(regs => {
         if (!vivo) return;
         setRegiones(regs);
-        setRegionElegida(regs[0] ?? '');
+        /* Por defecto se muestran TODOS los estudios de `studies`: los
+           clasificados de cualquier region y los no clasificados. Los chips
+           de region quedan como filtro opcional. */
+        setRegionElegida('todos');
         if (!regs.length) setCargando(false);
       })
       .catch(e => {
