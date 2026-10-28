@@ -504,26 +504,32 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
         <span>IPSE PACS · datos de la institución</span>
       </div>
 
-      {regiones.length === 0 && !cargando && (
+      {regiones.length === 0 && !cargando && regionElegida !== 'todos' && (
         <p className="ipse-note">
           Esta estructura no tiene una región equivalente en nuestros estudios.
         </p>
       )}
 
-      {regiones.length > 1 && (
-        <div className="ipse-regiones">
-          {regiones.map(r => (
-            <button
-              key={r}
-              type="button"
-              className={`ipse-chip ${r === regionElegida ? 'on' : ''}`}
-              onClick={() => setRegionElegida(r)}
-            >
-              {REGION_ES[r] ?? r}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="ipse-regiones">
+        <button
+          type="button"
+          className={`ipse-chip ${regionElegida === 'todos' ? 'on' : ''}`}
+          onClick={() => setRegionElegida('todos')}
+          title="Ver todos los estudios, sin importar la región anatómica"
+        >
+          Todos
+        </button>
+        {regiones.map(r => (
+          <button
+            key={r}
+            type="button"
+            className={`ipse-chip ${r === regionElegida ? 'on' : ''}`}
+            onClick={() => setRegionElegida(r)}
+          >
+            {REGION_ES[r] ?? r}
+          </button>
+        ))}
+      </div>
 
       {/* Regiones que el modelo masculino no incluye: obstetrico, mama,
           prostata, tiroides. Los estudios SI existen; se abren desde aqui
@@ -618,7 +624,9 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
           <div className="ipse-stat">
             <strong>{numero(total)}</strong>
             <span>
-              estudios en <b>{REGION_ES[regionElegida] ?? regionElegida}</b>
+              {regionElegida === 'todos'
+                ? <>todos los estudios</>
+                : <>estudios en <b>{REGION_ES[regionElegida] ?? regionElegida}</b></>}
             </span>
             {(edadPromedio !== null || totalSexo > 0) && (
               <em>
@@ -802,7 +810,7 @@ export default function PanelClinico({nombre, conceptId, partes, onAbrirRegion, 
                   {cargandoMas ? 'Cargando…' : 'Mostrar 10 más'}
                 </button>
               )}
-              {onAbrirRegion && !sinModelo && (
+              {onAbrirRegion && !sinModelo && regionElegida !== 'todos' && (
                 <button type="button" className="ipse-abrir" onClick={() => onAbrirRegion(regionElegida)}>
                   Ver la región completa en el ATLAS <ChevronRight size={13} />
                 </button>

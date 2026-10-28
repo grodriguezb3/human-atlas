@@ -171,6 +171,7 @@ export const REGION_ES: Record<string, string> = {
   'vascular-doppler': 'Vascular / Doppler',
   'partes-blandas': 'Partes blandas',
   obstetrico: 'Obstétrico',
+  todos: 'Todos',
 };
 
 /** Regiones que no existen en el modelo masculino: se avisa en la interfaz. */
